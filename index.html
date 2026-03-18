@@ -1,40 +1,259 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LOGBOY - まいにちのきろく</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
-<style>
-  /* 全体設定 */
-  body {
-    background-color: #000000;
-    color: #FFFFFF;
-    font-family: 'DotGothic16', sans-serif;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    -webkit-font-smoothing: none; 
-    -moz-osx-font-smoothing: grayscale;
-    font-smooth: never;
-    text-rendering: optimizeSpeed;
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LOGBOY Techo App Mockup</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #000; /* 背景を黒に */
+            color: #fff; /* 文字を白に */
+            font-family: 'DotGothic16', sans-serif; /* ドットフォント適用 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        /* アプリのウィンドウ */
+        #app-window {
+            background-color: #ecc42d; /* 画像の黄色 */
+            width: 100%;
+            max-width: 400px;
+            padding: 30px;
+            border: 4px solid #fff; /* 白い枠線（ドット絵風） */
+            position: relative;
+            text-align: left;
+        }
+
+        /* テキストエリア */
+        #message-text {
+            color: #000; /* テキストは黒（ image_3.png のデザイン） */
+            font-size: 1.2rem;
+            line-height: 1.6;
+            margin: 0;
+            letter-spacing: 0.05em;
+        }
+
+        /* 白い▼（カーソル） */
+        #cursor-icon {
+            color: #fff; /* 白い▼（ image_3.png のデザイン） */
+            display: block; /* text-alignを効かせるため */
+            text-align: right; /* ★右寄せ★ */
+            font-size: 1.5rem;
+            margin-top: 10px;
+            cursor: pointer; /* クリックできる感 */
+            animation: blink 1s step-end infinite; /* 点滅 */
+        }
+
+        @keyframes blink {
+            50% { opacity: 0; }
+        }
+
+        /* ヘッダーエリア */
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        #app-title {
+            font-size: 2rem;
+            margin: 0;
+            letter-spacing: 0.15em;
+        }
+
+        #step-indicator {
+            font-size: 1rem;
+            margin: 0;
+            color: #888;
+        }
+
+        /* ボタンエリア */
+        #button-area {
+            margin-top: 30px;
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+        }
+
+        button {
+            background: none;
+            border: 2px solid #fff;
+            color: #fff;
+            padding: 12px 20px;
+            font-family: 'DotGothic16', sans-serif;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex: 1; /* ボタンの幅を均等に */
+            justify-content: center;
+            display: flex;
+            align-items: center;
+        }
+
+        button:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        /* 完了画面用 */
+        #final-message {
+            display: none;
+            color: #000;
+            text-align: center;
+            font-size: 1.4rem;
+            line-height: 1.8;
+            padding: 20px 0;
+        }
+
+    </style>
+</head>
+<body>
+
+<div id="app-window">
+    <header>
+        <h1 id="app-title">LOGBOY</h1>
+        <p id="step-indicator">【 まいにち 1/3 】</p>
+    </header>
+
+    <main>
+        <p id="message-text">「今日の発見、気づきは？」</p>
+        <span id="cursor-icon">▼</span>
+
+        <div id="final-message">
+            お疲れ様でした！<br>
+            今日も手帳が書けましたね。<br>
+            <br>
+            明日が来るのが楽しみになることは？
+        </div>
+    </main>
+
+    <footer id="button-area">
+        <button id="check-btn" onclick="nextQuestion()"><span style="margin-right: 8px;">▶︎</span>かけた！</button>
+        <button id="finish-btn" onclick="finishEarly()"><span style="margin-right: 8px;">▶︎</span>きょうは ここまで</button>
+    </footer>
+</div>
+
+<script>
+    // 状態管理
+    let currentState = 0; // 0: 日常1, 1: 日常2, 2: 日常3
+
+    // 誰もが答えやすい日常の振り返り質問のプール（14問に増量）
+    const dailyQuestionsPool = [
+        "今日一番美味しかったものは？",
+        "今日一番リラックスできた瞬間は？",
+        "今日出会った素敵な言葉は？",
+        "今日誰かに言われて嬉しかったことは？",
+        "今日、新しく知ったことは？",
+        "今日、うまくいったことは？",
+        "今日、少しでも進んだことは？",
+        "今日、気分が上がった出来事は？",
+        "今日の自分に点数を点けるなら何点？",
+        "明日が来るのが楽しみになることは？",
+        "今日の「ありがとう」の出来事は？",
+        "今日、心が動いた瞬間は？",
+        "今日、手帳に書き残したいことは？",
+        "明日、挑戦してみたいことは？"
+    ];
+
+    const messageText = document.getElementById('message-text');
+    const finalMessage = document.getElementById('final-message');
+    const stepIndicator = document.getElementById('step-indicator');
+    const checkBtn = document.getElementById('check-btn');
+    const finishBtn = document.getElementById('finish-btn');
+    const cursorIcon = document.getElementById('cursor-icon');
+
+    // 配列からN個をランダムに選ぶ関数
+    const getRandomQuestions = (pool, count) => {
+        const shuffled = [...pool].sort(() => 0.5 - Math.random());
+        return shuffled.slice(0, count);
+    };
+
+    // 今日の質問セット（日常3問、ランダム）
+    let todayQuestions = getRandomQuestions(dailyQuestionsPool, 3);
+
+    // ビューを更新する関数
+    function renderView() {
+        let stepNum = currentState + 1;
+        let textToShow = "";
+        let primaryBtnText = "";
+        let secondaryBtnText = "";
+        let isFinal = false;
+
+        switch (currentState) {
+            case 0: // 1問目
+                stepNum = 1;
+                textToShow = todayQuestions[0];
+                primaryBtnText = "かけた！";
+                secondaryBtnText = "きょうは ここまで";
+                break;
+            case 1: // 2問目
+                stepNum = 2;
+                textToShow = todayQuestions[1];
+                primaryBtnText = "かけた！";
+                secondaryBtnText = "きょうは ここまで";
+                break;
+            case 2: // 3問目
+                stepNum = 3;
+                textToShow = todayQuestions[2];
+                primaryBtnText = "かけた！";
+                secondaryBtnText = "きょうは ここまで";
+                break;
+            case 3: // 完了
+                isFinal = true;
+                break;
+            default:
+                break;
+        }
+
+        // 表示の更新
+        stepIndicator.innerText = `【 まいにち ${stepNum}/3 】`;
+        messageText.innerHTML = `「${textToShow}」`;
+        checkBtn.innerHTML = `<span style="margin-right: 8px;">▶︎</span>${primaryBtnText}`;
+        finishBtn.innerHTML = `<span style="margin-right: 8px;">▶︎</span>${secondaryBtnText}`;
+
+        // 完了画面ではボタンを隠すなどの処理
+        if (isFinal) {
+            messageText.style.display = 'none';
+            cursorIcon.style.display = 'none';
+            document.getElementById('button-area').style.display = 'none';
+            stepIndicator.style.display = 'none';
+            finalMessage.style.display = 'block';
+        } else {
+            messageText.style.display = 'block';
+            cursorIcon.style.display = 'block';
+            document.getElementById('button-area').style.display = 'flex';
+            stepIndicator.style.display = 'block';
+            finalMessage.style.display = 'none';
+        }
+    }
+
+    // 「かけた！」ボタンが押された時の処理
+    function nextQuestion() {
+        if (currentState < 3) {
+            currentState++;
+            renderView();
+        }
+    }
+
+  // 「今日はここまで」ボタンが押された時の処理
+  function finishEarly() {
+      currentState = 3; // 完了画面へ飛ぶ
+      renderView();
   }
 
-  /* アプリ全体のコンテナ */
-  #app-container {
-    max-width: 480px;
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 20px;
-    box-sizing: border-box;
-    opacity: 0;
+    // 初期表示
+    renderView();
+
+</script>
+
+</body>
+</html>    opacity: 0;
     transition: opacity 0.5s ease-in-out;
   }
 
