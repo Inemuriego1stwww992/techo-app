@@ -9,7 +9,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Klee+One:wght@400;600&display=swap" rel="stylesheet">
 <style>
   body {
-    /* アースカラーの温かい背景と文字色 */
     background-color: #F4F1EA; 
     color: #4A4036;
     font-family: 'Klee One', cursive, sans-serif;
@@ -45,7 +44,7 @@
     gap: 15px;
   }
   button {
-    background-color: #C87A5E; /* テラコッタ（落ち着いた赤茶） */
+    background-color: #C87A5E;
     color: #FFFDF9;
     border: none;
     padding: 18px;
@@ -53,7 +52,7 @@
     font-family: 'Klee One', cursive, sans-serif;
     border-radius: 12px;
     cursor: pointer;
-    box-shadow: 0 4px 0 #A85A40; /* 立体感のあるボタン */
+    box-shadow: 0 4px 0 #A85A40;
     transition: all 0.1s;
   }
   button:active {
@@ -90,26 +89,28 @@
     "今日の目標は？"
   ];
 
-  // ランダムに選ばれる候補（自由に書き換えて増やせます）
+  // 誰もが答えやすい日常の振り返り（第2段階）
   const stage2Pool = [
     "今日達成したこと、出来たことは？",
-    "今日の反省点、改善点は？",
-    "今日の発見、気づきは？",
-    "note発信のトリガーになりそうな出来事はあった？",
-    "今日のボディメイクの進捗は？"
+    "今日の発見、新しく知ったことは？",
+    "今日一番美味しかったものは？",
+    "今日、少しでも気分が上がった瞬間は？",
+    "今日、誰かに「ありがとう」と言いたいことは？",
+    "今日の自分に点数をつけるなら何点？その理由は？"
   ];
 
+  // 思考を広げる、または深掘りする質問（第3段階）
   const stage3Pool = [
-    "３ヶ月後の自分の姿はどうなっていたい？",
-    "今日気になったニュースは？",
-    "今日いらついたことは？",
-    "最近撮りたい、または今日撮った写真は？",
-    "明日、一番楽しみにしていることは？"
+    "３ヶ月後の自分はどうなっていたい？",
+    "今、一番やりたいこと・行きたい場所は？",
+    "最近、心に残った言葉やニュースは？",
+    "もし明日が完全に自由な1日だったら何をする？",
+    "最近買ってよかったもの、または欲しいものは？",
+    "今抱えているモヤモヤを一つだけ書き出すとしたら？"
   ];
 
-  // --- 状態管理 ---
-  let dailyQuestions = []; // 今日の9問を保持する配列
-  let currentIndex = 0;    // 現在何問目か (0〜8)
+  let dailyQuestions = []; 
+  let currentIndex = 0;    
 
   const displayArea = document.getElementById('display-area');
 
@@ -118,13 +119,11 @@
     return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
   };
 
-  // 配列からN個をランダムに選ぶ関数
   const getRandomQuestions = (pool, count) => {
     const shuffled = [...pool].sort(() => 0.5 - Math.random());
     return shuffled.slice(0, count);
   };
 
-  // アプリ起動時の処理
   const initApp = () => {
     const savedDate = localStorage.getItem('techo_date');
     const savedIndex = localStorage.getItem('techo_index');
@@ -138,7 +137,7 @@
       if (currentIndex > 0 && currentIndex < 9) {
         renderResumeConfirm();
       } else if (currentIndex >= 9) {
-        renderFinish(); // すでに完了している場合
+        renderFinish(); 
       } else {
         renderQuestion();
       }
@@ -147,7 +146,6 @@
     }
   };
 
-  // 今日の質問セットを生成してスタート
   const resetAndStart = () => {
     const s2 = getRandomQuestions(stage2Pool, 3);
     const s3 = getRandomQuestions(stage3Pool, 3);
@@ -163,7 +161,6 @@
     localStorage.setItem('techo_questions', JSON.stringify(dailyQuestions));
   };
 
-  // 画面描画：続きから確認
   const renderResumeConfirm = () => {
     displayArea.innerHTML = `
       <div class="message-text">前回の続きから<br>手帳を開きますか？</div>
@@ -175,15 +172,12 @@
   };
 
   const resume = () => {
-    // 分岐ポイントのインデックスなら分岐画面を出す
     if (currentIndex === 3) renderBranch1();
     else if (currentIndex === 6) renderBranch2();
     else renderQuestion();
   };
 
-  // 画面描画：質問
   const renderQuestion = () => {
-    // 進行度の表示用
     let stageStr = "";
     let stepNum = 0;
     if (currentIndex < 3) { stageStr = "毎日書くこと"; stepNum = currentIndex + 1; }
@@ -214,7 +208,6 @@
     }
   };
 
-  // 画面描画：分岐1
   const renderBranch1 = () => {
     displayArea.innerHTML = `
       <div class="message-text">お疲れ様です。<br>手帳の基本が書けましたね！<br><br>さらに書きますか？</div>
@@ -225,7 +218,6 @@
     `;
   };
 
-  // 画面描画：分岐2
   const renderBranch2 = () => {
     displayArea.innerHTML = `
       <div class="message-text">素晴らしいです！<br>頭の中が整理されてきましたね。<br><br>もっと深掘りして書きますか？</div>
@@ -237,14 +229,11 @@
   };
 
   const renderFinishEarly = () => {
-    // 途中でやめる場合も、一応インデックスは完了扱いにするかそのままにするか。
-    // 今回は「今日はここまで」としたら完了画面へ。
     currentIndex = 9; 
     saveState();
     renderFinish();
   };
 
-  // 画面描画：完了
   const renderFinish = () => {
     displayArea.innerHTML = `
       <div class="message-text">お疲れ様でした！<br>手帳と向き合う、<br>素敵な時間が過ごせましたね。</div>
@@ -254,7 +243,6 @@
     `;
   };
 
-  // アプリ起動
   initApp();
 </script>
 
