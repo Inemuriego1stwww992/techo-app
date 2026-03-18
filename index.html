@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ろぐーる</title>
+<title>LOGBOY</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
 <style>
   body {
-    background-color: #111111; /* レトロゲーム風の黒背景 */
+    background-color: #111111; 
     color: #FFFFFF;
     font-family: 'DotGothic16', sans-serif;
     display: flex;
@@ -25,20 +25,27 @@
   #app-container {
     max-width: 400px;
     width: 100%;
-    /* メッセージウィンドウ風の枠線 */
-    border: 4px solid #FFFFFF;
-    border-radius: 8px;
+    border: 6px double #FFFFFF; 
+    border-radius: 0px; 
     padding: 30px 20px;
     background-color: #000000;
+    position: relative;
+    text-align: left; /* RPGのウィンドウらしく全体を左寄せベースに */
+  }
+  .character-name {
+    font-size: 1.1rem;
+    color: #66B2FF; /* 少し青みがかった色でキャラクター名っぽく */
+    margin-bottom: 10px;
   }
   .greeting-text {
     font-size: 1.1rem;
     color: #AAAAAA;
     margin-bottom: 20px;
+    text-align: center;
   }
   .question-text {
-    font-size: 1.5rem;
-    margin-bottom: 40px;
+    font-size: 1.4rem;
+    margin-bottom: 30px;
     line-height: 1.6;
     letter-spacing: 0.05em;
   }
@@ -49,14 +56,16 @@
   }
   .streak-text {
     font-size: 1.5rem;
-    color: #FFD700; /* ゴールド系の色で強調 */
+    color: #FFD700;
     margin-top: 20px;
     margin-bottom: 20px;
+    text-align: center;
   }
   .button-group {
     display: flex;
     flex-direction: column;
     gap: 15px;
+    margin-top: 20px;
   }
   button {
     background-color: #000000;
@@ -65,9 +74,11 @@
     padding: 15px;
     font-size: 1.2rem;
     font-family: 'DotGothic16', sans-serif;
-    border-radius: 4px;
+    border-radius: 0px; 
     cursor: pointer;
     transition: all 0.2s;
+    text-align: left; 
+    padding-left: 20px;
   }
   button:hover, button:active {
     background-color: #FFFFFF;
@@ -80,11 +91,21 @@
   .step-indicator {
     font-size: 1rem;
     color: #888888;
-    margin-bottom: 10px;
+    margin-bottom: 15px;
+    text-align: center;
   }
-  /* フェードインアニメーション */
+  .blinking-cursor {
+    animation: blinker 1s step-start infinite;
+    font-size: 1.2rem;
+    margin-top: 10px;
+    color: #FFFFFF;
+    text-align: center;
+  }
+  @keyframes blinker {
+    50% { opacity: 0; }
+  }
   .fade-in {
-    animation: fadeInAnimation 0.5s ease-in forwards;
+    animation: fadeInAnimation 0.3s ease-in forwards;
   }
   @keyframes fadeInAnimation {
     0% { opacity: 0; transform: translateY(5px); }
@@ -112,7 +133,12 @@
     "今日一番美味しかったものは？",
     "今日、少しでも気分が上がった瞬間は？",
     "今日、誰かに「ありがとう」と言いたいことは？",
-    "今日の自分に点数をつけるなら何点？その理由は？"
+    "今日の自分に点数をつけるなら何点？その理由は？",
+    "今日一番笑ったことは？",
+    "今日の自分を褒めるとしたらどこ？",
+    "今日、一番頑張ったなと思うことは？",
+    "今日聴いて心地よかった音楽や音は？",
+    "今日、新しく見つけたお気に入りの場所やモノは？"
   ];
 
   const stage3Pool = [
@@ -121,7 +147,13 @@
     "最近、心に残った言葉やニュースは？",
     "もし明日が完全に自由な1日だったら何をする？",
     "最近買ってよかったもの、または欲しいものは？",
-    "今抱えているモヤモヤを一つだけ書き出すとしたら？"
+    "今抱えているモヤモヤを一つだけ書き出すとしたら？",
+    "今週末、時間ができたらやりたいことは？",
+    "最近、少しでも成長したなと感じる部分は？",
+    "今、一番感謝を伝えたい人は誰？",
+    "もし自由に使えるお金があったら何に使う？",
+    "1年後の自分に向けて、一言メッセージを書くなら？",
+    "最近新しく始めたいと思っている習慣や趣味はある？"
   ];
 
   let dailyQuestions = []; 
@@ -145,22 +177,20 @@
     return shuffled.slice(0, count);
   };
 
-  // 時間帯に応じた挨拶を取得
   const getGreeting = () => {
     const hour = new Date().getHours();
     if (hour >= 5 && hour < 11) {
-      return "おはようございます。";
+      return "おはよう！";
     } else if (hour >= 11 && hour < 17) {
-      return "こんにちは。";
+      return "やあ、こんにちは！";
     } else {
-      return "今日もお疲れ様でした。";
+      return "きょうも おつかれさま！";
     }
   };
 
-  // アニメーションを再発火させながらHTMLを描画
   const renderWithFade = (htmlContent) => {
     displayArea.classList.remove('fade-in');
-    void displayArea.offsetWidth; // リフローを強制してアニメーションをリセット
+    void displayArea.offsetWidth; 
     displayArea.innerHTML = htmlContent;
     displayArea.classList.add('fade-in');
   };
@@ -202,7 +232,6 @@
     localStorage.setItem('techo_questions', JSON.stringify(dailyQuestions));
   };
 
-  // 継続日数の更新（完了時に呼ぶ）
   const updateStreak = () => {
     const today = getTodayString();
     const yesterday = getYesterdayString();
@@ -210,13 +239,10 @@
     const lastCompletedDate = localStorage.getItem('techo_last_completed');
 
     if (lastCompletedDate === yesterday) {
-      // 昨日も完了していれば+1
       streak += 1;
     } else if (lastCompletedDate !== today) {
-      // 今日初めて完了、かつ昨日やっていなければ1からスタート
       streak = 1;
     }
-    // (lastCompletedDate === today) の場合は既に今日カウント済みなので何もしない
 
     localStorage.setItem('techo_streak', streak);
     localStorage.setItem('techo_last_completed', today);
@@ -225,11 +251,12 @@
 
   const renderResumeConfirm = () => {
     const html = `
-      <div class="greeting-text">${getGreeting()}</div>
-      <div class="message-text">前回の続きから<br>手帳を開きますか？</div>
+      <div class="character-name">キロクロン</div>
+      <div class="message-text">「${getGreeting()}<br>ぜんかいの つづきから<br>てちょうを ひらくかい？」</div>
+      <div class="blinking-cursor">▼</div>
       <div class="button-group">
-        <button onclick="resume()">＞ はい</button>
-        <button class="btn-secondary" onclick="resetAndStart()">＞ いいえ（最初から）</button>
+        <button onclick="resume()">▶ はい</button>
+        <button class="btn-secondary" onclick="resetAndStart()">▶ いいえ（さいしょから）</button>
       </div>
     `;
     renderWithFade(html);
@@ -244,16 +271,20 @@
   const renderQuestion = () => {
     let stageStr = "";
     let stepNum = 0;
-    if (currentIndex < 3) { stageStr = "毎日書くこと"; stepNum = currentIndex + 1; }
-    else if (currentIndex < 6) { stageStr = "書きたいとき"; stepNum = currentIndex - 2; }
-    else { stageStr = "もっと書きたいとき"; stepNum = currentIndex - 5; }
+    if (currentIndex < 3) { stageStr = "まいにち かくこと"; stepNum = currentIndex + 1; }
+    else if (currentIndex < 6) { stageStr = "かきたい とき"; stepNum = currentIndex - 2; }
+    else { stageStr = "もっと かきたい とき"; stepNum = currentIndex - 5; }
+
+    const greetingHtml = currentIndex === 0 ? `<div class="character-name">キロクロン</div><div class="message-text">「${getGreeting()}<br>さっそく きろくを はじめよう！」</div>` : "";
 
     const html = `
-      <div class="greeting-text">${currentIndex === 0 ? getGreeting() : ""}</div>
-      <div class="step-indicator">▼ ${stageStr} (${stepNum}/3)</div>
+      ${greetingHtml}
+      <div class="step-indicator">【 ${stageStr} ${stepNum}/3 】</div>
+      <div class="character-name">キロクロン</div>
       <div class="question-text">「${dailyQuestions[currentIndex]}」</div>
+      <div class="blinking-cursor">▼</div>
       <div class="button-group">
-        <button onclick="nextStep()">＞ 書けた！</button>
+        <button onclick="nextStep()">▶ かけた！</button>
       </div>
     `;
     renderWithFade(html);
@@ -277,10 +308,12 @@
 
   const renderBranch1 = () => {
     const html = `
-      <div class="message-text">お疲れ様です。<br>きょうも手帳を書けたね！<br><br>さらに書く？</div>
+      <div class="character-name">キロクロン</div>
+      <div class="message-text">「おつかれさま！<br>きほんの きろくが おわったね。<br><br>さらに かいていくかい？」</div>
+      <div class="blinking-cursor">▼</div>
       <div class="button-group">
-        <button onclick="renderQuestion()">＞ はい</button>
-        <button class="btn-secondary" onclick="renderFinishEarly()">＞ 今日はここまで</button>
+        <button onclick="renderQuestion()">▶ はい</button>
+        <button class="btn-secondary" onclick="renderFinishEarly()">▶ きょうは ここまで</button>
       </div>
     `;
     renderWithFade(html);
@@ -288,10 +321,12 @@
 
   const renderBranch2 = () => {
     const html = `
-      <div class="message-text">素晴らしいです！<br>頭の中が整理されたね。<br><br>もっと深掘りして書く？</div>
+      <div class="character-name">キロクロン</div>
+      <div class="message-text">「すばらしい！<br>あたまの なかが せいり されたね。<br><br>もっと ふかぼり してみる？」</div>
+      <div class="blinking-cursor">▼</div>
       <div class="button-group">
-        <button onclick="renderQuestion()">＞ もっと書く</button>
-        <button class="btn-secondary" onclick="renderFinishEarly()">＞ 今日はここまで</button>
+        <button onclick="renderQuestion()">▶ もっと かく</button>
+        <button class="btn-secondary" onclick="renderFinishEarly()">▶ きょうは ここまで</button>
       </div>
     `;
     renderWithFade(html);
@@ -305,15 +340,16 @@
   };
 
   const renderFinish = (streak) => {
-    // 画面再読み込み時などで引数がない場合はローカルストレージから取得
     if (streak === undefined) {
       streak = parseInt(localStorage.getItem('techo_streak')) || 1;
     }
     const html = `
-      <div class="message-text">お疲れ様！<br>手帳と向き合う、<br>素敵な時間が過ごせたね。</div>
-      <div class="streak-text">★ れんぞく ${streak}日目！ ★</div>
+      <div class="character-name">キロクロン</div>
+      <div class="message-text">「おつかれさま！<br>てちょうと むきあう、<br>すてきな じかんが すごせたね。」</div>
+      <div class="streak-text">★ れんぞく ${streak}にちめ！ ★</div>
+      <div class="blinking-cursor">▼</div>
       <div class="button-group">
-        <button class="btn-secondary" onclick="resetAndStart()">＞ 最初からやり直す</button>
+        <button class="btn-secondary" onclick="resetAndStart()">▶ さいしょから やりなおす</button>
       </div>
     `;
     renderWithFade(html);
