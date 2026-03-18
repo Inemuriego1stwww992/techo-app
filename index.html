@@ -9,9 +9,15 @@
 <link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
 <style>
   body {
-    background-color: #111111; 
-    color: #FFFFFF;
+    background-color: #111111; /* レトロゲーム風の黒背景 */
+    color: #FFFFEE; /* 少し黄ばんだ白（レトロ感） */
+    /* 文字のドット感を出すためのCSS */
     font-family: 'DotGothic16', sans-serif;
+    -webkit-font-smoothing: none;
+    -moz-osx-font-smoothing: grayscale;
+    font-smooth: never;
+    text-rendering: optimizeSpeed;
+
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -21,21 +27,67 @@
     padding: 20px;
     box-sizing: border-box;
     text-align: center;
+    image-rendering: pixelated; /* 画面全体のドット感を強調 */
   }
   #app-container {
     max-width: 400px;
     width: 100%;
-    border: 6px double #FFFFFF; 
+    /* 完全にカクカクした枠線と立体感 */
+    border: 4px solid #FFFFEE; 
+    box-shadow: 6px 6px 0px #333333; /* ドット絵っぽい影 */
     border-radius: 0px; 
     padding: 30px 20px;
     background-color: #000000;
     position: relative;
-    text-align: left; /* RPGのウィンドウらしく全体を左寄せベースに */
+    text-align: left;
+  }
+  /* CSSで描くキロクロンのドット絵（魔法の本） */
+  .pixel-icon {
+    display: inline-block;
+    width: 1px;
+    height: 1px;
+    box-shadow: 
+      /* 白枠 */
+      3px 1px #FFFFEE, 4px 1px #FFFFEE, 5px 1px #FFFFEE, 6px 1px #FFFFEE, 7px 1px #FFFFEE, 8px 1px #FFFFEE, 9px 1px #FFFFEE, 10px 1px #FFFFEE, 11px 1px #FFFFEE, 12px 1px #FFFFEE,
+      2px 2px #FFFFEE, 13px 2px #FFFFEE,
+      1px 3px #FFFFEE, 14px 3px #FFFFEE,
+      1px 4px #FFFFEE, 14px 4px #FFFFEE,
+      1px 5px #FFFFEE, 14px 5px #FFFFEE,
+      1px 6px #FFFFEE, 14px 6px #FFFFEE,
+      1px 7px #FFFFEE, 14px 7px #FFFFEE,
+      1px 8px #FFFFEE, 14px 8px #FFFFEE,
+      1px 9px #FFFFEE, 14px 9px #FFFFEE,
+      1px 10px #FFFFEE, 14px 10px #FFFFEE,
+      1px 11px #FFFFEE, 14px 11px #FFFFEE,
+      2px 12px #FFFFEE, 13px 12px #FFFFEE,
+      3px 13px #FFFFEE, 4px 13px #FFFFEE, 5px 13px #FFFFEE, 6px 13px #FFFFEE, 7px 13px #FFFFEE, 8px 13px #FFFFEE, 9px 13px #FFFFEE, 10px 13px #FFFFEE, 11px 13px #FFFFEE, 12px 13px #FFFFEE,
+      /* 厚み */
+      3px 14px #666, 4px 14px #666, 5px 14px #666, 6px 14px #666, 7px 14px #666, 8px 14px #666, 9px 14px #666, 10px 14px #666, 11px 14px #666, 12px 14px #666,
+      /* 中央のエンブレム（黄色） */
+      7px 5px #FFD700, 8px 5px #FFD700,
+      6px 6px #FFD700, 9px 6px #FFD700,
+      7px 7px #FFD700, 8px 7px #FFD700,
+      7px 8px #FFD700, 8px 8px #FFD700,
+      7px 9px #FFD700, 8px 9px #FFD700;
+    transform: scale(3); /* ドットのサイズを調整 */
+    margin-bottom: 30px; /* 挨拶画面での余白 */
+  }
+  /* 質問画面での小さなアイコン */
+  .pixel-icon-small {
+    transform: scale(2);
+    margin-right: 15px;
+    margin-bottom: 0px;
+    vertical-align: middle;
   }
   .character-name {
     font-size: 1.1rem;
-    color: #66B2FF; /* 少し青みがかった色でキャラクター名っぽく */
-    margin-bottom: 10px;
+    color: #66B2FF; /* ファミコン風の青 */
+    margin-bottom: 15px;
+  }
+  .character-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
   }
   .greeting-text {
     font-size: 1.1rem;
@@ -56,7 +108,7 @@
   }
   .streak-text {
     font-size: 1.5rem;
-    color: #FFD700;
+    color: #FFD700; /* ゴールド（継続） */
     margin-top: 20px;
     margin-bottom: 20px;
     text-align: center;
@@ -69,24 +121,39 @@
   }
   button {
     background-color: #000000;
-    color: #FFFFFF;
-    border: 2px solid #FFFFFF;
+    color: #FFFFEE;
+    border: 2px solid #FFFFEE;
     padding: 15px;
     font-size: 1.2rem;
     font-family: 'DotGothic16', sans-serif;
-    border-radius: 0px; 
+    border-radius: 0px; /* ボタンも完全に四角く */
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.1s;
     text-align: left; 
     padding-left: 20px;
+    -webkit-font-smoothing: none;
+    -moz-osx-font-smoothing: grayscale;
+    font-smooth: never;
   }
   button:hover, button:active {
-    background-color: #FFFFFF;
+    background-color: #FFFFEE;
     color: #000000;
+  }
+  /* ホバー時のカーソル */
+  button .cursor {
+    visibility: hidden;
+    margin-right: 10px;
+  }
+  button:hover .cursor, button:active .cursor {
+    visibility: visible;
   }
   .btn-secondary {
     border-color: #888888;
     color: #888888;
+  }
+  .btn-secondary:hover, .btn-secondary:active {
+    background-color: #888888;
+    color: #000000;
   }
   .step-indicator {
     font-size: 1rem;
@@ -98,17 +165,18 @@
     animation: blinker 1s step-start infinite;
     font-size: 1.2rem;
     margin-top: 10px;
-    color: #FFFFFF;
+    color: #FFFFEE;
     text-align: center;
   }
   @keyframes blinker {
     50% { opacity: 0; }
   }
+  /* フェードインアニメーションを少し速く、カクカクさせる */
   .fade-in {
-    animation: fadeInAnimation 0.3s ease-in forwards;
+    animation: fadeInAnimation 0.2s step-end forwards;
   }
   @keyframes fadeInAnimation {
-    0% { opacity: 0; transform: translateY(5px); }
+    0% { opacity: 0; transform: translateY(2px); }
     100% { opacity: 1; transform: translateY(0); }
   }
 </style>
@@ -188,6 +256,11 @@
     }
   };
 
+  // キャラクター（魔法の本）のドット絵HTML
+  const getPixelIconHtml = (isSmall = false) => {
+    return `<div class="pixel-icon ${isSmall ? 'pixel-icon-small' : ''}"></div>`;
+  };
+
   const renderWithFade = (htmlContent) => {
     displayArea.classList.remove('fade-in');
     void displayArea.offsetWidth; 
@@ -251,12 +324,13 @@
 
   const renderResumeConfirm = () => {
     const html = `
-      <div class="character-name">キロクロン</div>
+      <div style="text-align: center;">${getPixelIconHtml()}</div>
+      <div class="character-name" style="text-align: center;">キロクロン</div>
       <div class="message-text">「${getGreeting()}<br>ぜんかいの つづきから<br>てちょうを ひらくかい？」</div>
       <div class="blinking-cursor">▼</div>
       <div class="button-group">
-        <button onclick="resume()">▶ はい</button>
-        <button class="btn-secondary" onclick="resetAndStart()">▶ いいえ（さいしょから）</button>
+        <button onclick="resume()"><span class="cursor">▶</span>はい</button>
+        <button class="btn-secondary" onclick="resetAndStart()"><span class="cursor">▶</span>いいえ（さいしょから）</button>
       </div>
     `;
     renderWithFade(html);
@@ -275,16 +349,24 @@
     else if (currentIndex < 6) { stageStr = "かきたい とき"; stepNum = currentIndex - 2; }
     else { stageStr = "もっと かきたい とき"; stepNum = currentIndex - 5; }
 
-    const greetingHtml = currentIndex === 0 ? `<div class="character-name">キロクロン</div><div class="message-text">「${getGreeting()}<br>さっそく きろくを はじめよう！」</div>` : "";
+    // 最初の質問時のみ挨拶を表示
+    const greetingHtml = currentIndex === 0 ? `
+      <div style="text-align: center;">${getPixelIconHtml()}</div>
+      <div class="character-name" style="text-align: center;">キロクロン</div>
+      <div class="message-text">「${getGreeting()}<br>さっそく きろくを はじめよう！」</div>
+    ` : "";
 
     const html = `
       ${greetingHtml}
       <div class="step-indicator">【 ${stageStr} ${stepNum}/3 】</div>
-      <div class="character-name">キロクロン</div>
+      <div class="character-header">
+        ${getPixelIconHtml(true)}
+        <div class="character-name" style="margin-bottom: 0;">キロクロン</div>
+      </div>
       <div class="question-text">「${dailyQuestions[currentIndex]}」</div>
       <div class="blinking-cursor">▼</div>
       <div class="button-group">
-        <button onclick="nextStep()">▶ かけた！</button>
+        <button onclick="nextStep()"><span class="cursor">▶</span>かけた！</button>
       </div>
     `;
     renderWithFade(html);
@@ -308,12 +390,15 @@
 
   const renderBranch1 = () => {
     const html = `
-      <div class="character-name">キロクロン</div>
+      <div class="character-header">
+        ${getPixelIconHtml(true)}
+        <div class="character-name" style="margin-bottom: 0;">キロクロン</div>
+      </div>
       <div class="message-text">「おつかれさま！<br>きほんの きろくが おわったね。<br><br>さらに かいていくかい？」</div>
       <div class="blinking-cursor">▼</div>
       <div class="button-group">
-        <button onclick="renderQuestion()">▶ はい</button>
-        <button class="btn-secondary" onclick="renderFinishEarly()">▶ きょうは ここまで</button>
+        <button onclick="renderQuestion()"><span class="cursor">▶</span>はい</button>
+        <button class="btn-secondary" onclick="renderFinishEarly()"><span class="cursor">▶</span>きょうは ここまで</button>
       </div>
     `;
     renderWithFade(html);
@@ -321,12 +406,15 @@
 
   const renderBranch2 = () => {
     const html = `
-      <div class="character-name">キロクロン</div>
+      <div class="character-header">
+        ${getPixelIconHtml(true)}
+        <div class="character-name" style="margin-bottom: 0;">キロクロン</div>
+      </div>
       <div class="message-text">「すばらしい！<br>あたまの なかが せいり されたね。<br><br>もっと ふかぼり してみる？」</div>
       <div class="blinking-cursor">▼</div>
       <div class="button-group">
-        <button onclick="renderQuestion()">▶ もっと かく</button>
-        <button class="btn-secondary" onclick="renderFinishEarly()">▶ きょうは ここまで</button>
+        <button onclick="renderQuestion()"><span class="cursor">▶</span>もっと かく</button>
+        <button class="btn-secondary" onclick="renderFinishEarly()"><span class="cursor">▶</span>きょうは ここまで</button>
       </div>
     `;
     renderWithFade(html);
@@ -344,12 +432,13 @@
       streak = parseInt(localStorage.getItem('techo_streak')) || 1;
     }
     const html = `
-      <div class="character-name">キロクロン</div>
+      <div style="text-align: center;">${getPixelIconHtml()}</div>
+      <div class="character-name" style="text-align: center;">キロクロン</div>
       <div class="message-text">「おつかれさま！<br>てちょうと むきあう、<br>すてきな じかんが すごせたね。」</div>
       <div class="streak-text">★ れんぞく ${streak}にちめ！ ★</div>
       <div class="blinking-cursor">▼</div>
       <div class="button-group">
-        <button class="btn-secondary" onclick="resetAndStart()">▶ さいしょから やりなおす</button>
+        <button class="btn-secondary" onclick="resetAndStart()"><span class="cursor">▶</span>さいしょから やりなおす</button>
       </div>
     `;
     renderWithFade(html);
