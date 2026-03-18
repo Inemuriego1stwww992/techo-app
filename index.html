@@ -3,445 +3,352 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LOGBOY</title>
+<title>LOGBOY - まいにちのきろく</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
 <style>
+  /* 全体設定 */
   body {
-    background-color: #111111; /* レトロゲーム風の黒背景 */
-    color: #FFFFEE; /* 少し黄ばんだ白（レトロ感） */
-    /* 文字のドット感を出すためのCSS */
+    background-color: #000000;
+    color: #FFFFFF;
     font-family: 'DotGothic16', sans-serif;
-    -webkit-font-smoothing: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    /* ドット感を強めるための設定 */
+    -webkit-font-smoothing: none; 
     -moz-osx-font-smoothing: grayscale;
     font-smooth: never;
     text-rendering: optimizeSpeed;
+  }
 
+  /* アプリ全体のコンテナ */
+  #app-container {
+    max-width: 480px;
+    width: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    height: 100vh;
-    margin: 0;
     padding: 20px;
     box-sizing: border-box;
-    text-align: center;
-    image-rendering: pixelated; /* 画面全体のドット感を強調 */
+    /* 初期表示は非表示にしてJSでフェードインさせる */
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
   }
-  #app-container {
-    max-width: 400px;
+
+  /* ヘッダーエリア */
+  header {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+
+  #app-title {
+    font-size: 2.5rem;
+    margin: 0 0 10px 0;
+  }
+
+  #step-indicator {
+    font-size: 1.1rem;
+    margin: 0;
+    color: #AAAAAA; /* 少し薄い白 */
+  }
+
+  /* メインコンテンツエリア */
+  main {
     width: 100%;
-    /* 完全にカクカクした枠線と立体感 */
-    border: 4px solid #FFFFEE; 
-    box-shadow: 6px 6px 0px #333333; /* ドット絵っぽい影 */
-    border-radius: 0px; 
-    padding: 30px 20px;
-    background-color: #000000;
-    position: relative;
-    text-align: left;
-  }
-  /* CSSで描くキロクロンのドット絵（魔法の本） */
-  .pixel-icon {
-    display: inline-block;
-    width: 1px;
-    height: 1px;
-    box-shadow: 
-      /* 白枠 */
-      3px 1px #FFFFEE, 4px 1px #FFFFEE, 5px 1px #FFFFEE, 6px 1px #FFFFEE, 7px 1px #FFFFEE, 8px 1px #FFFFEE, 9px 1px #FFFFEE, 10px 1px #FFFFEE, 11px 1px #FFFFEE, 12px 1px #FFFFEE,
-      2px 2px #FFFFEE, 13px 2px #FFFFEE,
-      1px 3px #FFFFEE, 14px 3px #FFFFEE,
-      1px 4px #FFFFEE, 14px 4px #FFFFEE,
-      1px 5px #FFFFEE, 14px 5px #FFFFEE,
-      1px 6px #FFFFEE, 14px 6px #FFFFEE,
-      1px 7px #FFFFEE, 14px 7px #FFFFEE,
-      1px 8px #FFFFEE, 14px 8px #FFFFEE,
-      1px 9px #FFFFEE, 14px 9px #FFFFEE,
-      1px 10px #FFFFEE, 14px 10px #FFFFEE,
-      1px 11px #FFFFEE, 14px 11px #FFFFEE,
-      2px 12px #FFFFEE, 13px 12px #FFFFEE,
-      3px 13px #FFFFEE, 4px 13px #FFFFEE, 5px 13px #FFFFEE, 6px 13px #FFFFEE, 7px 13px #FFFFEE, 8px 13px #FFFFEE, 9px 13px #FFFFEE, 10px 13px #FFFFEE, 11px 13px #FFFFEE, 12px 13px #FFFFEE,
-      /* 厚み */
-      3px 14px #666, 4px 14px #666, 5px 14px #666, 6px 14px #666, 7px 14px #666, 8px 14px #666, 9px 14px #666, 10px 14px #666, 11px 14px #666, 12px 14px #666,
-      /* 中央のエンブレム（黄色） */
-      7px 5px #FFD700, 8px 5px #FFD700,
-      6px 6px #FFD700, 9px 6px #FFD700,
-      7px 7px #FFD700, 8px 7px #FFD700,
-      7px 8px #FFD700, 8px 8px #FFD700,
-      7px 9px #FFD700, 8px 9px #FFD700;
-    transform: scale(3); /* ドットのサイズを調整 */
-    margin-bottom: 30px; /* 挨拶画面での余白 */
-  }
-  /* 質問画面での小さなアイコン */
-  .pixel-icon-small {
-    transform: scale(2);
-    margin-right: 15px;
-    margin-bottom: 0px;
-    vertical-align: middle;
-  }
-  .character-name {
-    font-size: 1.1rem;
-    color: #66B2FF; /* ファミコン風の青 */
-    margin-bottom: 15px;
-  }
-  .character-header {
-    display: flex;
-    align-items: center;
-    margin-bottom: 20px;
-  }
-  .greeting-text {
-    font-size: 1.1rem;
-    color: #AAAAAA;
-    margin-bottom: 20px;
-    text-align: center;
-  }
-  .question-text {
-    font-size: 1.4rem;
     margin-bottom: 30px;
+  }
+
+  /* 黄色のメッセージウィンドウ（デザインの核心） */
+  #message-window {
+    background-color: #ECC42D; /* 画像の黄色 */
+    /* 画像のピクセル網目枠をCSSで再現 */
+    border: 8px solid;
+    border-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAAPElEQVQoU2NkYGBgYGJkZGT4//8/AxMTE8P///8ZmJiYGP7//8/AxMTw//9/BiYmBiaGJ4YvBiYmBiaGLwYmBgaGJ4YfBgYmBiaGHwYGCAYGAAEAABAAAAA=') 1;
+    padding: 25px;
+    box-sizing: border-box;
+    position: relative;
+    box-shadow: 4px 4px 0px #333333; /* ドット絵っぽい影 */
+  }
+
+  /* ウィンドウ内のテキスト */
+  #message-text {
+    color: #000000;
+    font-size: 1.2rem;
+    margin: 0;
     line-height: 1.6;
     letter-spacing: 0.05em;
   }
-  .message-text {
-    font-size: 1.3rem;
-    margin-bottom: 30px;
-    line-height: 1.6;
-  }
-  .streak-text {
-    font-size: 1.5rem;
-    color: #FFD700; /* ゴールド（継続） */
-    margin-top: 20px;
-    margin-bottom: 20px;
-    text-align: center;
-  }
-  .button-group {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    margin-top: 20px;
-  }
-  button {
-    background-color: #000000;
-    color: #FFFFEE;
-    border: 2px solid #FFFFEE;
-    padding: 15px;
-    font-size: 1.2rem;
-    font-family: 'DotGothic16', sans-serif;
-    border-radius: 0px; /* ボタンも完全に四角く */
-    cursor: pointer;
-    transition: all 0.1s;
-    text-align: left; 
-    padding-left: 20px;
-    -webkit-font-smoothing: none;
-    -moz-osx-font-smoothing: grayscale;
-    font-smooth: never;
-  }
-  button:hover, button:active {
-    background-color: #FFFFEE;
+
+  /* 点滅するカーソル */
+  .blinking-cursor {
     color: #000000;
+    display: inline-block;
+    margin-left: 2px;
+    animation: blink 1s step-start infinite;
   }
-  /* ホバー時のカーソル */
-  button .cursor {
-    visibility: hidden;
-    margin-right: 10px;
+
+  /* フッター（ボタン）エリア */
+  footer {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    box-sizing: border-box;
+    padding: 0 10px;
   }
-  button:hover .cursor, button:active .cursor {
-    visibility: visible;
+
+  /* アクションボタンの共通設定（黒背景、白枠） */
+  .action-btn {
+    background-color: #000000;
+    color: #FFFFFF;
+    border: 2px solid #FFFFFF;
+    font-family: 'DotGothic16', sans-serif;
+    font-size: 1.1rem;
+    padding: 12px 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    transition: background-color 0.1s;
   }
-  .btn-secondary {
+
+  /* ボタンホバー時 */
+  .action-btn:hover {
+    background-color: #333333;
+  }
+
+  /* ボタン内の矢印（▶︎） */
+  .cursor {
+    color: #FFFFFF;
+    display: inline-block;
+    margin-right: 8px;
+  }
+
+  /* 終了ボタン（グレー） */
+  .secondary-btn {
     border-color: #888888;
     color: #888888;
   }
-  .btn-secondary:hover, .btn-secondary:active {
-    background-color: #888888;
-    color: #000000;
-  }
-  .step-indicator {
-    font-size: 1rem;
+  .secondary-btn .cursor {
     color: #888888;
-    margin-bottom: 15px;
-    text-align: center;
   }
-  .blinking-cursor {
-    animation: blinker 1s step-start infinite;
-    font-size: 1.2rem;
-    margin-top: 10px;
-    color: #FFFFEE;
-    text-align: center;
+  .secondary-btn:hover {
+    background-color: #222222;
   }
-  @keyframes blinker {
-    50% { opacity: 0; }
-  }
-  /* フェードインアニメーションを少し速く、カクカクさせる */
+
+  /* アニメーション用クラス */
   .fade-in {
-    animation: fadeInAnimation 0.2s step-end forwards;
+    opacity: 1 !important;
   }
-  @keyframes fadeInAnimation {
-    0% { opacity: 0; transform: translateY(2px); }
-    100% { opacity: 1; transform: translateY(0); }
+
+  @keyframes blink {
+    50% { opacity: 0; }
   }
 </style>
 </head>
 <body>
 
 <div id="app-container">
-  <div id="display-area">
+  <header>
+    <h1 id="app-title">LOGBOY</h1>
+    <p id="step-indicator">【 まいにち かくこと 1/3 】</p>
+  </header>
+  <main>
+    <div id="message-window">
+      <p id="message-text">
+        </p>
     </div>
+  </main>
+  <footer>
+    <button id="primary-btn" class="action-btn" onclick="nextStep()"><span class="cursor">▶︎</span>かけた！</button>
+    <button id="secondary-btn" class="action-btn secondary-btn" onclick="finishEarly()"><span class="cursor">▶︎</span>きょうは ここまで</button>
+  </footer>
 </div>
 
 <script>
-  const stage1Questions = [
-    "きょう(あした)のスケジュールは？",
-    "今日のTODOやタスクは？",
-    "今日の目標は？"
-  ];
+  // 状態管理
+  let currentState = 0; // 0: 初期化/挨拶, 1: TODO, 2: 目標, 3: 分岐①, 4: 第2段階1, ...
+  let dailyQuestions = []; // 第2、3段階用の今日の質問（ランダム）
+  let typeWriterTimer; // タイプライターのタイマーを保持
 
+  // 質問プール（第2、3段階用）
   const stage2Pool = [
-    "今日達成したこと、出来たことは？",
-    "今日の発見、新しく知ったことは？",
-    "今日一番美味しかったものは？",
-    "今日、少しでも気分が上がった瞬間は？",
-    "今日、誰かに「ありがとう」と言いたいことは？",
-    "今日の自分に点数をつけるなら何点？その理由は？",
-    "今日一番笑ったことは？",
-    "今日の自分を褒めるとしたらどこ？",
-    "今日、一番頑張ったなと思うことは？",
-    "今日聴いて心地よかった音楽や音は？",
-    "今日、新しく見つけたお気に入りの場所やモノは？"
+      "今日達成したこと、出来たことは？",
+      "今日の反省点、改善点は？",
+      "今日の発見、気づきは？"
   ];
-
   const stage3Pool = [
-    "３ヶ月後の自分はどうなっていたい？",
-    "今、一番やりたいこと・行きたい場所は？",
-    "最近、心に残った言葉やニュースは？",
-    "もし明日が完全に自由な1日だったら何をする？",
-    "最近買ってよかったもの、または欲しいものは？",
-    "今抱えているモヤモヤを一つだけ書き出すとしたら？",
-    "今週末、時間ができたらやりたいことは？",
-    "最近、少しでも成長したなと感じる部分は？",
-    "今、一番感謝を伝えたい人は誰？",
-    "もし自由に使えるお金があったら何に使う？",
-    "1年後の自分に向けて、一言メッセージを書くなら？",
-    "最近新しく始めたいと思っている習慣や趣味はある？"
+      "３ヶ月後の自分の姿はどうなっていたい？",
+      "今日のニュース",
+      "今日いらついたこと"
   ];
 
-  let dailyQuestions = []; 
-  let currentIndex = 0;    
+  const appContainer = document.getElementById('app-container');
+  const messageWindow = document.getElementById('message-window');
+  const messageText = document.getElementById('message-text');
+  const stepIndicator = document.getElementById('step-indicator');
+  const primaryBtn = document.getElementById('primary-btn');
+  const secondaryBtn = document.getElementById('secondary-btn');
 
-  const displayArea = document.getElementById('display-area');
-
-  const getTodayString = () => {
-    const d = new Date();
-    return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
-  };
-
-  const getYesterdayString = () => {
-    const d = new Date();
-    d.setDate(d.getDate() - 1);
-    return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
-  };
-
+  // 配列からN個をランダムに選ぶ
   const getRandomQuestions = (pool, count) => {
-    const shuffled = [...pool].sort(() => 0.5 - Math.random());
-    return shuffled.slice(0, count);
+      const shuffled = [...pool].sort(() => 0.5 - Math.random());
+      return shuffled.slice(0, count);
   };
 
+  // 時間帯に応じた挨拶を取得
   const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour >= 5 && hour < 11) {
-      return "おはよう！";
-    } else if (hour >= 11 && hour < 17) {
-      return "やあ、こんにちは！";
-    } else {
-      return "きょうも おつかれさま！";
-    }
+      const hour = new Date().getHours();
+      if (hour >= 5 && hour < 11) return "おはようございます。";
+      if (hour >= 11 && hour < 17) return "こんにちは。";
+      return "今日もお疲れ様でした。";
   };
 
-  // キャラクター（魔法の本）のドット絵HTML
-  const getPixelIconHtml = (isSmall = false) => {
-    return `<div class="pixel-icon ${isSmall ? 'pixel-icon-small' : ''}"></div>`;
-  };
-
-  const renderWithFade = (htmlContent) => {
-    displayArea.classList.remove('fade-in');
-    void displayArea.offsetWidth; 
-    displayArea.innerHTML = htmlContent;
-    displayArea.classList.add('fade-in');
-  };
-
+  // アプリ起動時の初期化
   const initApp = () => {
-    const savedDate = localStorage.getItem('techo_date');
-    const savedIndex = localStorage.getItem('techo_index');
-    const savedQuestions = localStorage.getItem('techo_questions');
-    const today = getTodayString();
+      // 第2、3段階用の今日の質問セットを生成
+      const s2 = getRandomQuestions(stage2Pool, 3);
+      const s3 = getRandomQuestions(stage3Pool, 3);
+      dailyQuestions = [...s2, ...s3];
+      currentState = 0;
 
-    if (savedDate === today && savedQuestions && savedIndex !== null) {
-      dailyQuestions = JSON.parse(savedQuestions);
-      currentIndex = parseInt(savedIndex);
-      
-      if (currentIndex > 0 && currentIndex < 9) {
-        renderResumeConfirm();
-      } else if (currentIndex >= 9) {
-        renderFinish(); 
-      } else {
-        renderQuestion();
+      // アプリ全体をフェードイン
+      appContainer.classList.add('fade-in');
+
+      renderView();
+  };
+
+  // 現在の状態に基づいてビューを描画
+  const renderView = () => {
+      // タイプライターのタイマーが動いていればクリア
+      if (typeWriterTimer) clearInterval(typeWriterTimer);
+
+      let stepText = "";
+      let primaryBtnText = "かけた！";
+      let textToType = "";
+      let isFinal = false; // 完了画面かどうか
+
+      // ウィンドウのフェードインアニメーション（拡張機能③）
+      messageWindow.style.opacity = 0;
+      void messageWindow.offsetWidth; // リフローを強制してアニメーションをリセット
+      messageWindow.style.opacity = 1;
+      messageWindow.style.transition = 'opacity 0.3s ease-in';
+
+      // 状態ごとのテキストと指示を設定
+      switch (currentState) {
+          case 0: // 初期化/挨拶（画像のデザイン）
+              stepText = "まいにち かくこと 1/3";
+              // 時間帯の挨拶を追加（拡張機能③）
+              textToType = `${getGreeting()} さっそく きろくを はじめみよう！\n\n「きょう(あした)のスケジュールは？」`;
+              break;
+          case 1: // TODO（コア機能1）
+              stepText = "まいにち かくこと 2/3";
+              textToType = "「TODO、タスクは？」";
+              break;
+          case 2: // 目標（コア機能1）
+              stepText = "まいにち かくこと 3/3";
+              textToType = "「今日の目標は？」";
+              break;
+          case 3: // 分岐①（コア機能1完了後の提案）
+              stepText = "まいにち 完了";
+              textToType = "お疲れ様です！<br>さらに手帳を書きますか？";
+              primaryBtnText = "はい";
+              break;
+          case 4: // 第2段階1（コア機能2）
+              stepText = "書きたいとき 1/3";
+              textToType = `「${dailyQuestions[0]}」`;
+              break;
+          case 5: // 第2段階2（コア機能2）
+              stepText = "書きたいとき 2/3";
+              textToType = `「${dailyQuestions[1]}」`;
+              break;
+          case 6: // 第2段階3（コア機能2）
+              stepText = "書きたいとき 3/3";
+              textToType = `「${dailyQuestions[2]}」`;
+              break;
+          case 7: // 分岐②（コア機能2完了後の提案）
+              stepText = "書きたいとき 完了";
+              textToType = "素晴らしいです！<br>もっと手帳を書きますか？";
+              primaryBtnText = "はい";
+              break;
+          case 8: // 第3段階1（コア機能3）
+              stepText = "もっと書きたい 1/3";
+              textToType = `「${dailyQuestions[3]}」`;
+              break;
+          case 9: // 第3段階2（コア機能3）
+              stepText = "もっと書きたい 2/3";
+              textToType = `「${dailyQuestions[4]}」`;
+              break;
+          case 10: // 第3段階3（コア機能3）
+              stepText = "もっと書きたい 3/3";
+              textToType = `「${dailyQuestions[5]}」`;
+              break;
+          case 11: // 完了（最終画面）
+              isFinal = true;
+              stepText = "完了！";
+              textToType = "お疲れ様でした！<br>今日も手帳が書けましたね。";
+              break;
+          default:
+              break;
       }
-    } else {
-      resetAndStart();
-    }
+
+      // UIの更新
+      stepIndicator.innerText = `【 ${stepText} 】`;
+      primaryBtn.innerHTML = `<span class="cursor">▶︎</span>${primaryBtnText}`;
+
+      // 完了画面ではボタンを隠すなどの処理
+      if (isFinal) {
+          primaryBtn.style.display = 'none';
+          secondaryBtn.style.display = 'none';
+          // 完了画面に別のメッセージを出すなどの拡張が可能
+      } else {
+          primaryBtn.style.display = 'flex';
+          secondaryBtn.style.display = 'flex';
+      }
+
+      // タイプライター風のアニメーション（拡張機能④）
+      typeWriter(textToType);
   };
 
-  const resetAndStart = () => {
-    const s2 = getRandomQuestions(stage2Pool, 3);
-    const s3 = getRandomQuestions(stage3Pool, 3);
-    dailyQuestions = [...stage1Questions, ...s2, ...s3];
-    currentIndex = 0;
-    saveState();
-    renderQuestion();
-  };
-
-  const saveState = () => {
-    localStorage.setItem('techo_date', getTodayString());
-    localStorage.setItem('techo_index', currentIndex);
-    localStorage.setItem('techo_questions', JSON.stringify(dailyQuestions));
-  };
-
-  const updateStreak = () => {
-    const today = getTodayString();
-    const yesterday = getYesterdayString();
-    let streak = parseInt(localStorage.getItem('techo_streak')) || 0;
-    const lastCompletedDate = localStorage.getItem('techo_last_completed');
-
-    if (lastCompletedDate === yesterday) {
-      streak += 1;
-    } else if (lastCompletedDate !== today) {
-      streak = 1;
-    }
-
-    localStorage.setItem('techo_streak', streak);
-    localStorage.setItem('techo_last_completed', today);
-    return streak;
-  };
-
-  const renderResumeConfirm = () => {
-    const html = `
-      <div style="text-align: center;">${getPixelIconHtml()}</div>
-      <div class="character-name" style="text-align: center;">キロクロン</div>
-      <div class="message-text">「${getGreeting()}<br>ぜんかいの つづきから<br>てちょうを ひらくかい？」</div>
-      <div class="blinking-cursor">▼</div>
-      <div class="button-group">
-        <button onclick="resume()"><span class="cursor">▶</span>はい</button>
-        <button class="btn-secondary" onclick="resetAndStart()"><span class="cursor">▶</span>いいえ（さいしょから）</button>
-      </div>
-    `;
-    renderWithFade(html);
-  };
-
-  const resume = () => {
-    if (currentIndex === 3) renderBranch1();
-    else if (currentIndex === 6) renderBranch2();
-    else renderQuestion();
-  };
-
-  const renderQuestion = () => {
-    let stageStr = "";
-    let stepNum = 0;
-    if (currentIndex < 3) { stageStr = "まいにち かくこと"; stepNum = currentIndex + 1; }
-    else if (currentIndex < 6) { stageStr = "かきたい とき"; stepNum = currentIndex - 2; }
-    else { stageStr = "もっと かきたい とき"; stepNum = currentIndex - 5; }
-
-    // 最初の質問時のみ挨拶を表示
-    const greetingHtml = currentIndex === 0 ? `
-      <div style="text-align: center;">${getPixelIconHtml()}</div>
-      <div class="character-name" style="text-align: center;">キロクロン</div>
-      <div class="message-text">「${getGreeting()}<br>さっそく きろくを はじめよう！」</div>
-    ` : "";
-
-    const html = `
-      ${greetingHtml}
-      <div class="step-indicator">【 ${stageStr} ${stepNum}/3 】</div>
-      <div class="character-header">
-        ${getPixelIconHtml(true)}
-        <div class="character-name" style="margin-bottom: 0;">キロクロン</div>
-      </div>
-      <div class="question-text">「${dailyQuestions[currentIndex]}」</div>
-      <div class="blinking-cursor">▼</div>
-      <div class="button-group">
-        <button onclick="nextStep()"><span class="cursor">▶</span>かけた！</button>
-      </div>
-    `;
-    renderWithFade(html);
-  };
-
+  // 「かけた！」または「はい」で進む
   const nextStep = () => {
-    currentIndex++;
-    saveState();
-
-    if (currentIndex === 3) {
-      renderBranch1();
-    } else if (currentIndex === 6) {
-      renderBranch2();
-    } else if (currentIndex >= 9) {
-      const currentStreak = updateStreak();
-      renderFinish(currentStreak);
-    } else {
-      renderQuestion();
-    }
+      currentState++;
+      renderView();
   };
 
-  const renderBranch1 = () => {
-    const html = `
-      <div class="character-header">
-        ${getPixelIconHtml(true)}
-        <div class="character-name" style="margin-bottom: 0;">キロクロン</div>
-      </div>
-      <div class="message-text">「おつかれさま！<br>きほんの きろくが おわったね。<br><br>さらに かいていくかい？」</div>
-      <div class="blinking-cursor">▼</div>
-      <div class="button-group">
-        <button onclick="renderQuestion()"><span class="cursor">▶</span>はい</button>
-        <button class="btn-secondary" onclick="renderFinishEarly()"><span class="cursor">▶</span>きょうは ここまで</button>
-      </div>
-    `;
-    renderWithFade(html);
+  // 「今日はここまで」で終了
+  const finishEarly = () => {
+      currentState = 11; // 完了画面へ飛ぶ
+      renderView();
   };
 
-  const renderBranch2 = () => {
-    const html = `
-      <div class="character-header">
-        ${getPixelIconHtml(true)}
-        <div class="character-name" style="margin-bottom: 0;">キロクロン</div>
-      </div>
-      <div class="message-text">「すばらしい！<br>あたまの なかが せいり されたね。<br><br>もっと ふかぼり してみる？」</div>
-      <div class="blinking-cursor">▼</div>
-      <div class="button-group">
-        <button onclick="renderQuestion()"><span class="cursor">▶</span>もっと かく</button>
-        <button class="btn-secondary" onclick="renderFinishEarly()"><span class="cursor">▶</span>きょうは ここまで</button>
-      </div>
-    `;
-    renderWithFade(html);
-  };
-
-  const renderFinishEarly = () => {
-    currentIndex = 9; 
-    saveState();
-    const currentStreak = updateStreak();
-    renderFinish(currentStreak);
-  };
-
-  const renderFinish = (streak) => {
-    if (streak === undefined) {
-      streak = parseInt(localStorage.getItem('techo_streak')) || 1;
-    }
-    const html = `
-      <div style="text-align: center;">${getPixelIconHtml()}</div>
-      <div class="character-name" style="text-align: center;">キロクロン</div>
-      <div class="message-text">「おつかれさま！<br>てちょうと むきあう、<br>すてきな じかんが すごせたね。」</div>
-      <div class="streak-text">★ れんぞく ${streak}にちめ！ ★</div>
-      <div class="blinking-cursor">▼</div>
-      <div class="button-group">
-        <button class="btn-secondary" onclick="resetAndStart()"><span class="cursor">▶</span>さいしょから やりなおす</button>
-      </div>
-    `;
-    renderWithFade(html);
+  // タイプライターアニメーション関数
+  const typeWriter = (text, speed = 60) => {
+      let i = 0;
+      messageText.innerHTML = "";
+      // タイプライターのタイマーを開始
+      typeWriterTimer = setInterval(() => {
+          if (i < text.length) {
+              // 改行文字（\nまたは<br>）の処理
+              if (text.substr(i, 4) === '<br>') {
+                  messageText.innerHTML += '<br>';
+                  i += 4;
+              } else if (text.charAt(i) === '\n') {
+                  messageText.innerHTML += '<br>';
+                  i++;
+              } else {
+                  messageText.innerHTML += text.charAt(i);
+                  i++;
+              }
+          } else {
+              // 終了したらタイマーをクリアし、点滅カーソルを追加
+              clearInterval(typeWriterTimer);
+              messageText.innerHTML += '<span class="blinking-cursor">▼</span>';
+          }
+      }, speed);
   };
 
   initApp();
