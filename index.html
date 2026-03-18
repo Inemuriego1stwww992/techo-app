@@ -3,15 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>手帳サポートアプリ</title>
+<title>ろぐーる</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Klee+One:wght@400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
 <style>
   body {
-    background-color: #F4F1EA; 
-    color: #4A4036;
-    font-family: 'Klee One', cursive, sans-serif;
+    background-color: #111111; /* レトロゲーム風の黒背景 */
+    color: #FFFFFF;
+    font-family: 'DotGothic16', sans-serif;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -25,10 +25,19 @@
   #app-container {
     max-width: 400px;
     width: 100%;
+    /* メッセージウィンドウ風の枠線 */
+    border: 4px solid #FFFFFF;
+    border-radius: 8px;
+    padding: 30px 20px;
+    background-color: #000000;
+  }
+  .greeting-text {
+    font-size: 1.1rem;
+    color: #AAAAAA;
+    margin-bottom: 20px;
   }
   .question-text {
-    font-size: 1.6rem;
-    font-weight: 600;
+    font-size: 1.5rem;
     margin-bottom: 40px;
     line-height: 1.6;
     letter-spacing: 0.05em;
@@ -36,7 +45,13 @@
   .message-text {
     font-size: 1.3rem;
     margin-bottom: 30px;
-    line-height: 1.5;
+    line-height: 1.6;
+  }
+  .streak-text {
+    font-size: 1.5rem;
+    color: #FFD700; /* ゴールド系の色で強調 */
+    margin-top: 20px;
+    margin-bottom: 20px;
   }
   .button-group {
     display: flex;
@@ -44,33 +59,36 @@
     gap: 15px;
   }
   button {
-    background-color: #C87A5E;
-    color: #FFFDF9;
-    border: none;
-    padding: 18px;
+    background-color: #000000;
+    color: #FFFFFF;
+    border: 2px solid #FFFFFF;
+    padding: 15px;
     font-size: 1.2rem;
-    font-family: 'Klee One', cursive, sans-serif;
-    border-radius: 12px;
+    font-family: 'DotGothic16', sans-serif;
+    border-radius: 4px;
     cursor: pointer;
-    box-shadow: 0 4px 0 #A85A40;
-    transition: all 0.1s;
+    transition: all 0.2s;
   }
-  button:active {
-    transform: translateY(4px);
-    box-shadow: 0 0 0 #A85A40;
+  button:hover, button:active {
+    background-color: #FFFFFF;
+    color: #000000;
   }
   .btn-secondary {
-    background-color: #E2DCCF;
-    color: #5C5446;
-    box-shadow: 0 4px 0 #C4BEB1;
-  }
-  .btn-secondary:active {
-    box-shadow: 0 0 0 #C4BEB1;
+    border-color: #888888;
+    color: #888888;
   }
   .step-indicator {
-    font-size: 0.9rem;
-    color: #8C8477;
+    font-size: 1rem;
+    color: #888888;
     margin-bottom: 10px;
+  }
+  /* フェードインアニメーション */
+  .fade-in {
+    animation: fadeInAnimation 0.5s ease-in forwards;
+  }
+  @keyframes fadeInAnimation {
+    0% { opacity: 0; transform: translateY(5px); }
+    100% { opacity: 1; transform: translateY(0); }
   }
 </style>
 </head>
@@ -82,14 +100,12 @@
 </div>
 
 <script>
-  // --- 質問の定義 ---
   const stage1Questions = [
     "きょう(あした)のスケジュールは？",
     "今日のTODOやタスクは？",
     "今日の目標は？"
   ];
 
-  // 誰もが答えやすい日常の振り返り（第2段階）
   const stage2Pool = [
     "今日達成したこと、出来たことは？",
     "今日の発見、新しく知ったことは？",
@@ -99,7 +115,6 @@
     "今日の自分に点数をつけるなら何点？その理由は？"
   ];
 
-  // 思考を広げる、または深掘りする質問（第3段階）
   const stage3Pool = [
     "３ヶ月後の自分はどうなっていたい？",
     "今、一番やりたいこと・行きたい場所は？",
@@ -119,9 +134,35 @@
     return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
   };
 
+  const getYesterdayString = () => {
+    const d = new Date();
+    d.setDate(d.getDate() - 1);
+    return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
+  };
+
   const getRandomQuestions = (pool, count) => {
     const shuffled = [...pool].sort(() => 0.5 - Math.random());
     return shuffled.slice(0, count);
+  };
+
+  // 時間帯に応じた挨拶を取得
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 11) {
+      return "おはようございます。";
+    } else if (hour >= 11 && hour < 17) {
+      return "こんにちは。";
+    } else {
+      return "今日もお疲れ様でした。";
+    }
+  };
+
+  // アニメーションを再発火させながらHTMLを描画
+  const renderWithFade = (htmlContent) => {
+    displayArea.classList.remove('fade-in');
+    void displayArea.offsetWidth; // リフローを強制してアニメーションをリセット
+    displayArea.innerHTML = htmlContent;
+    displayArea.classList.add('fade-in');
   };
 
   const initApp = () => {
@@ -161,14 +202,37 @@
     localStorage.setItem('techo_questions', JSON.stringify(dailyQuestions));
   };
 
+  // 継続日数の更新（完了時に呼ぶ）
+  const updateStreak = () => {
+    const today = getTodayString();
+    const yesterday = getYesterdayString();
+    let streak = parseInt(localStorage.getItem('techo_streak')) || 0;
+    const lastCompletedDate = localStorage.getItem('techo_last_completed');
+
+    if (lastCompletedDate === yesterday) {
+      // 昨日も完了していれば+1
+      streak += 1;
+    } else if (lastCompletedDate !== today) {
+      // 今日初めて完了、かつ昨日やっていなければ1からスタート
+      streak = 1;
+    }
+    // (lastCompletedDate === today) の場合は既に今日カウント済みなので何もしない
+
+    localStorage.setItem('techo_streak', streak);
+    localStorage.setItem('techo_last_completed', today);
+    return streak;
+  };
+
   const renderResumeConfirm = () => {
-    displayArea.innerHTML = `
+    const html = `
+      <div class="greeting-text">${getGreeting()}</div>
       <div class="message-text">前回の続きから<br>手帳を開きますか？</div>
       <div class="button-group">
-        <button onclick="resume()">はい（続きから）</button>
-        <button class="btn-secondary" onclick="resetAndStart()">いいえ（最初から）</button>
+        <button onclick="resume()">＞ はい</button>
+        <button class="btn-secondary" onclick="resetAndStart()">＞ いいえ（最初から）</button>
       </div>
     `;
+    renderWithFade(html);
   };
 
   const resume = () => {
@@ -184,13 +248,15 @@
     else if (currentIndex < 6) { stageStr = "書きたいとき"; stepNum = currentIndex - 2; }
     else { stageStr = "もっと書きたいとき"; stepNum = currentIndex - 5; }
 
-    displayArea.innerHTML = `
-      <div class="step-indicator">${stageStr} (${stepNum}/3)</div>
-      <div class="question-text">${dailyQuestions[currentIndex]}</div>
+    const html = `
+      <div class="greeting-text">${currentIndex === 0 ? getGreeting() : ""}</div>
+      <div class="step-indicator">▼ ${stageStr} (${stepNum}/3)</div>
+      <div class="question-text">「${dailyQuestions[currentIndex]}」</div>
       <div class="button-group">
-        <button onclick="nextStep()">書けた！</button>
+        <button onclick="nextStep()">＞ 書けた！</button>
       </div>
     `;
+    renderWithFade(html);
   };
 
   const nextStep = () => {
@@ -202,45 +268,55 @@
     } else if (currentIndex === 6) {
       renderBranch2();
     } else if (currentIndex >= 9) {
-      renderFinish();
+      const currentStreak = updateStreak();
+      renderFinish(currentStreak);
     } else {
       renderQuestion();
     }
   };
 
   const renderBranch1 = () => {
-    displayArea.innerHTML = `
-      <div class="message-text">お疲れ様です。<br>手帳の基本が書けましたね！<br><br>さらに書きますか？</div>
+    const html = `
+      <div class="message-text">お疲れ様です。<br>きょうも手帳を書けたね！<br><br>さらに書く？</div>
       <div class="button-group">
-        <button onclick="renderQuestion()">はい、書きます</button>
-        <button class="btn-secondary" onclick="renderFinishEarly()">今日はここまで</button>
+        <button onclick="renderQuestion()">＞ はい</button>
+        <button class="btn-secondary" onclick="renderFinishEarly()">＞ 今日はここまで</button>
       </div>
     `;
+    renderWithFade(html);
   };
 
   const renderBranch2 = () => {
-    displayArea.innerHTML = `
-      <div class="message-text">素晴らしいです！<br>頭の中が整理されてきましたね。<br><br>もっと深掘りして書きますか？</div>
+    const html = `
+      <div class="message-text">素晴らしいです！<br>頭の中が整理されたね。<br><br>もっと深掘りして書く？</div>
       <div class="button-group">
-        <button onclick="renderQuestion()">はい、もっと書く</button>
-        <button class="btn-secondary" onclick="renderFinishEarly()">今日はここまで</button>
+        <button onclick="renderQuestion()">＞ もっと書く</button>
+        <button class="btn-secondary" onclick="renderFinishEarly()">＞ 今日はここまで</button>
       </div>
     `;
+    renderWithFade(html);
   };
 
   const renderFinishEarly = () => {
     currentIndex = 9; 
     saveState();
-    renderFinish();
+    const currentStreak = updateStreak();
+    renderFinish(currentStreak);
   };
 
-  const renderFinish = () => {
-    displayArea.innerHTML = `
-      <div class="message-text">お疲れ様でした！<br>手帳と向き合う、<br>素敵な時間が過ごせましたね。</div>
+  const renderFinish = (streak) => {
+    // 画面再読み込み時などで引数がない場合はローカルストレージから取得
+    if (streak === undefined) {
+      streak = parseInt(localStorage.getItem('techo_streak')) || 1;
+    }
+    const html = `
+      <div class="message-text">お疲れ様！<br>手帳と向き合う、<br>素敵な時間が過ごせたね。</div>
+      <div class="streak-text">★ れんぞく ${streak}日目！ ★</div>
       <div class="button-group">
-        <button class="btn-secondary" onclick="resetAndStart()">最初からやり直す</button>
+        <button class="btn-secondary" onclick="resetAndStart()">＞ 最初からやり直す</button>
       </div>
     `;
+    renderWithFade(html);
   };
 
   initApp();
