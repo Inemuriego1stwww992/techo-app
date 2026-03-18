@@ -4,11 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>手帳サポートアプリ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Klee+One:wght@400;600&display=swap" rel="stylesheet">
 <style>
   body {
-    background-color: #FDFBF7; /* 手帳の紙のような温かい色 */
-    color: #333333;
-    font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', sans-serif;
+    /* アースカラーの温かい背景と文字色 */
+    background-color: #F4F1EA; 
+    color: #4A4036;
+    font-family: 'Klee One', cursive, sans-serif;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -23,25 +27,17 @@
     max-width: 400px;
     width: 100%;
   }
-  h1 {
-    font-size: 1.2rem;
-    font-weight: normal;
+  .question-text {
+    font-size: 1.6rem;
+    font-weight: 600;
+    margin-bottom: 40px;
+    line-height: 1.6;
+    letter-spacing: 0.05em;
+  }
+  .message-text {
+    font-size: 1.3rem;
     margin-bottom: 30px;
     line-height: 1.5;
-  }
-  .content-list {
-    text-align: left;
-    background: #ffffff;
-    padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    margin-bottom: 30px;
-  }
-  .content-list p {
-    margin: 10px 0;
-    font-size: 1.1rem;
-    border-bottom: 1px dashed #e0e0e0;
-    padding-bottom: 8px;
   }
   .button-group {
     display: flex;
@@ -49,24 +45,33 @@
     gap: 15px;
   }
   button {
-    background-color: #E86452; /* 暖かみのあるアクセントカラー */
-    color: white;
+    background-color: #C87A5E; /* テラコッタ（落ち着いた赤茶） */
+    color: #FFFDF9;
     border: none;
-    padding: 15px;
-    font-size: 1.1rem;
-    border-radius: 30px;
+    padding: 18px;
+    font-size: 1.2rem;
+    font-family: 'Klee One', cursive, sans-serif;
+    border-radius: 12px;
     cursor: pointer;
-    box-shadow: 0 4px 6px rgba(232, 100, 82, 0.2);
-    transition: transform 0.1s;
+    box-shadow: 0 4px 0 #A85A40; /* 立体感のあるボタン */
+    transition: all 0.1s;
   }
   button:active {
-    transform: translateY(2px);
-    box-shadow: 0 2px 3px rgba(232, 100, 82, 0.2);
+    transform: translateY(4px);
+    box-shadow: 0 0 0 #A85A40;
   }
   .btn-secondary {
-    background-color: #d1d1d1;
-    color: #555;
-    box-shadow: none;
+    background-color: #E2DCCF;
+    color: #5C5446;
+    box-shadow: 0 4px 0 #C4BEB1;
+  }
+  .btn-secondary:active {
+    box-shadow: 0 0 0 #C4BEB1;
+  }
+  .step-indicator {
+    font-size: 0.9rem;
+    color: #8C8477;
+    margin-bottom: 10px;
   }
 </style>
 </head>
@@ -78,149 +83,171 @@
 </div>
 
 <script>
-  // 状態管理
-  let currentState = 0;
-  // 0: 初期化/確認, 1: 機能①, 2: 分岐①, 3: 機能②, 4: 分岐②, 5: 機能③, 6: 完了
+  // --- 質問の定義 ---
+  const stage1Questions = [
+    "きょう(あした)のスケジュールは？",
+    "今日のTODOやタスクは？",
+    "今日の目標は？"
+  ];
+
+  // ランダムに選ばれる候補（自由に書き換えて増やせます）
+  const stage2Pool = [
+    "今日達成したこと、出来たことは？",
+    "今日の反省点、改善点は？",
+    "今日の発見、気づきは？",
+    "note発信のトリガーになりそうな出来事はあった？",
+    "今日のボディメイクの進捗は？"
+  ];
+
+  const stage3Pool = [
+    "３ヶ月後の自分の姿はどうなっていたい？",
+    "今日気になったニュースは？",
+    "今日いらついたことは？",
+    "最近撮りたい、または今日撮った写真は？",
+    "明日、一番楽しみにしていることは？"
+  ];
+
+  // --- 状態管理 ---
+  let dailyQuestions = []; // 今日の9問を保持する配列
+  let currentIndex = 0;    // 現在何問目か (0〜8)
 
   const displayArea = document.getElementById('display-area');
 
-  // 今日の日付を取得（YYYY-MM-DD形式）
   const getTodayString = () => {
     const d = new Date();
     return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
   };
 
-  // アプリ起動時のチェック
+  // 配列からN個をランダムに選ぶ関数
+  const getRandomQuestions = (pool, count) => {
+    const shuffled = [...pool].sort(() => 0.5 - Math.random());
+    return shuffled.slice(0, count);
+  };
+
+  // アプリ起動時の処理
   const initApp = () => {
     const savedDate = localStorage.getItem('techo_date');
-    const savedState = localStorage.getItem('techo_state');
+    const savedIndex = localStorage.getItem('techo_index');
+    const savedQuestions = localStorage.getItem('techo_questions');
     const today = getTodayString();
 
-    if (savedDate === today && savedState !== null && parseInt(savedState) > 1 && parseInt(savedState) < 6) {
-      // 同じ日で、かつ途中の状態がある場合
-      renderResumeConfirm(parseInt(savedState));
+    if (savedDate === today && savedQuestions && savedIndex !== null) {
+      dailyQuestions = JSON.parse(savedQuestions);
+      currentIndex = parseInt(savedIndex);
+      
+      if (currentIndex > 0 && currentIndex < 9) {
+        renderResumeConfirm();
+      } else if (currentIndex >= 9) {
+        renderFinish(); // すでに完了している場合
+      } else {
+        renderQuestion();
+      }
     } else {
-      // 日付が変わっている、または最初からの場合
       resetAndStart();
     }
   };
 
-  const saveState = (state) => {
-    localStorage.setItem('techo_date', getTodayString());
-    localStorage.setItem('techo_state', state);
-    currentState = state;
-  };
-
+  // 今日の質問セットを生成してスタート
   const resetAndStart = () => {
-    saveState(1);
-    renderStep1();
+    const s2 = getRandomQuestions(stage2Pool, 3);
+    const s3 = getRandomQuestions(stage3Pool, 3);
+    dailyQuestions = [...stage1Questions, ...s2, ...s3];
+    currentIndex = 0;
+    saveState();
+    renderQuestion();
   };
 
-  const renderResumeConfirm = (savedState) => {
+  const saveState = () => {
+    localStorage.setItem('techo_date', getTodayString());
+    localStorage.setItem('techo_index', currentIndex);
+    localStorage.setItem('techo_questions', JSON.stringify(dailyQuestions));
+  };
+
+  // 画面描画：続きから確認
+  const renderResumeConfirm = () => {
     displayArea.innerHTML = `
-      <h1>前回の続きから行いますか？</h1>
+      <div class="message-text">前回の続きから<br>手帳を開きますか？</div>
       <div class="button-group">
-        <button onclick="resume(${savedState})">はい（続きから）</button>
+        <button onclick="resume()">はい（続きから）</button>
         <button class="btn-secondary" onclick="resetAndStart()">いいえ（最初から）</button>
       </div>
     `;
   };
 
-  const resume = (state) => {
-    currentState = state;
-    if(state === 2) renderBranch1();
-    else if(state === 3) renderStep2();
-    else if(state === 4) renderBranch2();
-    else if(state === 5) renderStep3();
-    else renderStep1();
+  const resume = () => {
+    // 分岐ポイントのインデックスなら分岐画面を出す
+    if (currentIndex === 3) renderBranch1();
+    else if (currentIndex === 6) renderBranch2();
+    else renderQuestion();
   };
 
-  const renderStep1 = () => {
+  // 画面描画：質問
+  const renderQuestion = () => {
+    // 進行度の表示用
+    let stageStr = "";
+    let stepNum = 0;
+    if (currentIndex < 3) { stageStr = "毎日書くこと"; stepNum = currentIndex + 1; }
+    else if (currentIndex < 6) { stageStr = "書きたいとき"; stepNum = currentIndex - 2; }
+    else { stageStr = "もっと書きたいとき"; stepNum = currentIndex - 5; }
+
     displayArea.innerHTML = `
-      <h1>まず、手帳に書く３つのこと</h1>
-      <div class="content-list">
-        <p>1. きょう(あした)のスケジュール</p>
-        <p>2. TODO、タスク</p>
-        <p>3. 今日の目標</p>
-      </div>
+      <div class="step-indicator">${stageStr} (${stepNum}/3)</div>
+      <div class="question-text">${dailyQuestions[currentIndex]}</div>
       <div class="button-group">
-        <button onclick="goToBranch1()">書けた！</button>
+        <button onclick="nextStep()">書けた！</button>
       </div>
     `;
   };
 
-  const goToBranch1 = () => {
-    saveState(2);
-    renderBranch1();
+  const nextStep = () => {
+    currentIndex++;
+    saveState();
+
+    if (currentIndex === 3) {
+      renderBranch1();
+    } else if (currentIndex === 6) {
+      renderBranch2();
+    } else if (currentIndex >= 9) {
+      renderFinish();
+    } else {
+      renderQuestion();
+    }
   };
 
+  // 画面描画：分岐1
   const renderBranch1 = () => {
     displayArea.innerHTML = `
-      <h1>お疲れ様です！<br>さらに手帳を書きますか？</h1>
+      <div class="message-text">お疲れ様です。<br>手帳の基本が書けましたね！<br><br>さらに書きますか？</div>
       <div class="button-group">
-        <button onclick="goToStep2()">はい</button>
-        <button class="btn-secondary" onclick="finishApp()">いいえ</button>
+        <button onclick="renderQuestion()">はい、書きます</button>
+        <button class="btn-secondary" onclick="renderFinishEarly()">今日はここまで</button>
       </div>
     `;
   };
 
-  const goToStep2 = () => {
-    saveState(3);
-    renderStep2();
-  };
-
-  const renderStep2 = () => {
-    displayArea.innerHTML = `
-      <h1>書きたいときに書くこと3つ</h1>
-      <div class="content-list">
-        <p>1. 今日達成したこと、出来たこと</p>
-        <p>2. 今日の反省点、改善点</p>
-        <p>3. 今日の発見、気づき</p>
-      </div>
-      <div class="button-group">
-        <button onclick="goToBranch2()">書けた！</button>
-      </div>
-    `;
-  };
-
-  const goToBranch2 = () => {
-    saveState(4);
-    renderBranch2();
-  };
-
+  // 画面描画：分岐2
   const renderBranch2 = () => {
     displayArea.innerHTML = `
-      <h1>素晴らしいです！<br>もっと手帳を書きますか？</h1>
+      <div class="message-text">素晴らしいです！<br>頭の中が整理されてきましたね。<br><br>もっと深掘りして書きますか？</div>
       <div class="button-group">
-        <button onclick="goToStep3()">はい</button>
-        <button class="btn-secondary" onclick="finishApp()">いいえ</button>
+        <button onclick="renderQuestion()">はい、もっと書く</button>
+        <button class="btn-secondary" onclick="renderFinishEarly()">今日はここまで</button>
       </div>
     `;
   };
 
-  const goToStep3 = () => {
-    saveState(5);
-    renderStep3();
+  const renderFinishEarly = () => {
+    // 途中でやめる場合も、一応インデックスは完了扱いにするかそのままにするか。
+    // 今回は「今日はここまで」としたら完了画面へ。
+    currentIndex = 9; 
+    saveState();
+    renderFinish();
   };
 
-  const renderStep3 = () => {
+  // 画面描画：完了
+  const renderFinish = () => {
     displayArea.innerHTML = `
-      <h1>もっと書きたい時に書く３つ</h1>
-      <div class="content-list">
-        <p>1. ３ヶ月後の自分の姿</p>
-        <p>2. 今日のニュース</p>
-        <p>3. 今日いらついたこと</p>
-      </div>
-      <div class="button-group">
-        <button onclick="finishApp()">完了！</button>
-      </div>
-    `;
-  };
-
-  const finishApp = () => {
-    saveState(6);
-    displayArea.innerHTML = `
-      <h1>お疲れ様でした！<br>今日も手帳が書けましたね。</h1>
+      <div class="message-text">お疲れ様でした！<br>手帳と向き合う、<br>素敵な時間が過ごせましたね。</div>
       <div class="button-group">
         <button class="btn-secondary" onclick="resetAndStart()">最初からやり直す</button>
       </div>
