@@ -19,7 +19,6 @@
     justify-content: center;
     align-items: center;
     height: 100vh;
-    /* ドット感を強めるための設定 */
     -webkit-font-smoothing: none; 
     -moz-osx-font-smoothing: grayscale;
     font-smooth: never;
@@ -35,7 +34,6 @@
     align-items: center;
     padding: 20px;
     box-sizing: border-box;
-    /* 初期表示は非表示にしてJSでフェードインさせる */
     opacity: 0;
     transition: opacity 0.5s ease-in-out;
   }
@@ -49,12 +47,13 @@
   #app-title {
     font-size: 2.5rem;
     margin: 0 0 10px 0;
+    letter-spacing: 0.1em;
   }
 
   #step-indicator {
     font-size: 1.1rem;
     margin: 0;
-    color: #AAAAAA; /* 少し薄い白 */
+    color: #AAAAAA;
   }
 
   /* メインコンテンツエリア */
@@ -63,16 +62,16 @@
     margin-bottom: 30px;
   }
 
-  /* 黄色のメッセージウィンドウ（デザインの核心） */
+  /* 黄色のメッセージウィンドウ */
   #message-window {
-    background-color: #ECC42D; /* 画像の黄色 */
-    /* 画像のピクセル網目枠をCSSで再現 */
+    background-color: #ECC42D;
     border: 8px solid;
     border-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAAPElEQVQoU2NkYGBgYGJkZGT4//8/AxMTE8P///8ZmJiYGP7//8/AxMTw//9/BiYmBiaGJ4YvBiYmBiaGLwYmBgaGJ4YfBgYmBiaGHwYGCAYGAAEAABAAAAA=') 1;
-    padding: 25px;
+    padding: 25px 25px 45px 25px; /* 下部に▼用の余白を確保 */
     box-sizing: border-box;
     position: relative;
-    box-shadow: 4px 4px 0px #333333; /* ドット絵っぽい影 */
+    box-shadow: 4px 4px 0px #333333;
+    min-height: 160px; /* ウィンドウの高さがガタガタ変わらないように固定 */
   }
 
   /* ウィンドウ内のテキスト */
@@ -84,12 +83,15 @@
     letter-spacing: 0.05em;
   }
 
-  /* 点滅するカーソル */
+  /* 点滅するカーソル（右下固定） */
   .blinking-cursor {
     color: #000000;
-    display: inline-block;
-    margin-left: 2px;
+    font-size: 1.5rem;
+    position: absolute;
+    right: 20px;
+    bottom: 15px;
     animation: blink 1s step-start infinite;
+    display: none; /* 初期は非表示（文字入力後に表示） */
   }
 
   /* フッター（ボタン）エリア */
@@ -99,40 +101,47 @@
     justify-content: space-between;
     box-sizing: border-box;
     padding: 0 10px;
+    gap: 15px;
   }
 
-  /* アクションボタンの共通設定（黒背景、白枠） */
+  /* アクションボタンの共通設定 */
   .action-btn {
     background-color: #000000;
     color: #FFFFFF;
     border: 2px solid #FFFFFF;
     font-family: 'DotGothic16', sans-serif;
     font-size: 1.1rem;
-    padding: 12px 18px;
+    padding: 15px 20px;
     cursor: pointer;
     display: flex;
     align-items: center;
     transition: background-color 0.1s;
+    flex: 1; /* ボタンの幅を均等に */
+    justify-content: center; /* テキストを中央寄せにしたい場合はcenter。左ならflex-start */
   }
 
-  /* ボタンホバー時 */
+  /* CSSで描画するピクセルアロー（▶） */
+  .pixel-arrow {
+    display: inline-block;
+    width: 4px;
+    height: 4px;
+    background: currentColor;
+    /* 影を使ってドットを並べ、矢印の形を作る */
+    box-shadow: 
+      0 4px currentColor, 0 8px currentColor, 0 12px currentColor, 0 16px currentColor,
+      4px 4px currentColor, 4px 8px currentColor, 4px 12px currentColor,
+      8px 8px currentColor;
+    margin-right: 18px;
+    transform: translateY(-8px); /* 位置の微調整 */
+  }
+
   .action-btn:hover {
     background-color: #333333;
-  }
-
-  /* ボタン内の矢印（▶︎） */
-  .cursor {
-    color: #FFFFFF;
-    display: inline-block;
-    margin-right: 8px;
   }
 
   /* 終了ボタン（グレー） */
   .secondary-btn {
     border-color: #888888;
-    color: #888888;
-  }
-  .secondary-btn .cursor {
     color: #888888;
   }
   .secondary-btn:hover {
@@ -160,21 +169,24 @@
     <div id="message-window">
       <p id="message-text">
         </p>
+      <div id="blinking-cursor">▼</div>
     </div>
   </main>
   <footer>
-    <button id="primary-btn" class="action-btn" onclick="nextStep()"><span class="cursor">▶︎</span>かけた！</button>
-    <button id="secondary-btn" class="action-btn secondary-btn" onclick="finishEarly()"><span class="cursor">▶︎</span>きょうは ここまで</button>
+    <button id="primary-btn" class="action-btn" onclick="nextStep()">
+      <span class="pixel-arrow"></span><span id="primary-btn-text">かけた！</span>
+    </button>
+    <button id="secondary-btn" class="action-btn secondary-btn" onclick="finishEarly()">
+      <span class="pixel-arrow"></span><span id="secondary-btn-text">きょうは ここまで</span>
+    </button>
   </footer>
 </div>
 
 <script>
-  // 状態管理
-  let currentState = 0; // 0: 初期化/挨拶, 1: TODO, 2: 目標, 3: 分岐①, 4: 第2段階1, ...
-  let dailyQuestions = []; // 第2、3段階用の今日の質問（ランダム）
-  let typeWriterTimer; // タイプライターのタイマーを保持
+  let currentState = 0; 
+  let dailyQuestions = []; 
+  let typeWriterTimer; 
 
-  // 質問プール（第2、3段階用）
   const stage2Pool = [
       "今日達成したこと、出来たことは？",
       "今日の反省点、改善点は？",
@@ -189,150 +201,139 @@
   const appContainer = document.getElementById('app-container');
   const messageWindow = document.getElementById('message-window');
   const messageText = document.getElementById('message-text');
+  const blinkingCursor = document.getElementById('blinking-cursor');
   const stepIndicator = document.getElementById('step-indicator');
   const primaryBtn = document.getElementById('primary-btn');
   const secondaryBtn = document.getElementById('secondary-btn');
+  const primaryBtnTextSpan = document.getElementById('primary-btn-text');
 
-  // 配列からN個をランダムに選ぶ
   const getRandomQuestions = (pool, count) => {
       const shuffled = [...pool].sort(() => 0.5 - Math.random());
       return shuffled.slice(0, count);
   };
 
-  // 時間帯に応じた挨拶を取得
   const getGreeting = () => {
       const hour = new Date().getHours();
-      if (hour >= 5 && hour < 11) return "おはようございます。";
-      if (hour >= 11 && hour < 17) return "こんにちは。";
-      return "今日もお疲れ様でした。";
+      if (hour >= 5 && hour < 11) return "おはよう！";
+      if (hour >= 11 && hour < 17) return "こんにちは！";
+      return "きょうも おつかれさま！";
   };
 
-  // アプリ起動時の初期化
   const initApp = () => {
-      // 第2、3段階用の今日の質問セットを生成
       const s2 = getRandomQuestions(stage2Pool, 3);
       const s3 = getRandomQuestions(stage3Pool, 3);
       dailyQuestions = [...s2, ...s3];
       currentState = 0;
 
-      // アプリ全体をフェードイン
       appContainer.classList.add('fade-in');
-
       renderView();
   };
 
-  // 現在の状態に基づいてビューを描画
   const renderView = () => {
-      // タイプライターのタイマーが動いていればクリア
       if (typeWriterTimer) clearInterval(typeWriterTimer);
+      blinkingCursor.style.display = 'none'; // タイピング中はカーソルを隠す
 
       let stepText = "";
       let primaryBtnText = "かけた！";
       let textToType = "";
-      let isFinal = false; // 完了画面かどうか
+      let isFinal = false; 
 
-      // ウィンドウのフェードインアニメーション（拡張機能③）
+      // ウィンドウのフェードインアニメーション
       messageWindow.style.opacity = 0;
-      void messageWindow.offsetWidth; // リフローを強制してアニメーションをリセット
+      void messageWindow.offsetWidth; 
       messageWindow.style.opacity = 1;
-      messageWindow.style.transition = 'opacity 0.3s ease-in';
+      messageWindow.style.transition = 'opacity 0.2s ease-in';
 
-      // 状態ごとのテキストと指示を設定
+      // ボタンのアクションをデフォルトで進む処理に設定
+      primaryBtn.onclick = nextStep;
+
       switch (currentState) {
-          case 0: // 初期化/挨拶（画像のデザイン）
+          case 0:
               stepText = "まいにち かくこと 1/3";
-              // 時間帯の挨拶を追加（拡張機能③）
-              textToType = `${getGreeting()} さっそく きろくを はじめみよう！\n\n「きょう(あした)のスケジュールは？」`;
+              textToType = `${getGreeting()} さっそく\nきろくを はじめよう！\n\n「きょう(あした)のスケジュールは？」`;
               break;
-          case 1: // TODO（コア機能1）
+          case 1:
               stepText = "まいにち かくこと 2/3";
               textToType = "「TODO、タスクは？」";
               break;
-          case 2: // 目標（コア機能1）
+          case 2:
               stepText = "まいにち かくこと 3/3";
               textToType = "「今日の目標は？」";
               break;
-          case 3: // 分岐①（コア機能1完了後の提案）
+          case 3:
               stepText = "まいにち 完了";
-              textToType = "お疲れ様です！<br>さらに手帳を書きますか？";
+              textToType = "おつかれさま！\nきほんの きろくが おわったね。\n\nさらに かいていくかい？";
               primaryBtnText = "はい";
               break;
-          case 4: // 第2段階1（コア機能2）
-              stepText = "書きたいとき 1/3";
+          case 4:
+              stepText = "かきたいとき 1/3";
               textToType = `「${dailyQuestions[0]}」`;
               break;
-          case 5: // 第2段階2（コア機能2）
-              stepText = "書きたいとき 2/3";
+          case 5:
+              stepText = "かきたいとき 2/3";
               textToType = `「${dailyQuestions[1]}」`;
               break;
-          case 6: // 第2段階3（コア機能2）
-              stepText = "書きたいとき 3/3";
+          case 6:
+              stepText = "かきたいとき 3/3";
               textToType = `「${dailyQuestions[2]}」`;
               break;
-          case 7: // 分岐②（コア機能2完了後の提案）
-              stepText = "書きたいとき 完了";
-              textToType = "素晴らしいです！<br>もっと手帳を書きますか？";
+          case 7:
+              stepText = "かきたいとき 完了";
+              textToType = "すばらしい！\nあたまのなかが せいりされたね。\n\nもっと ふかぼり してみる？";
               primaryBtnText = "はい";
               break;
-          case 8: // 第3段階1（コア機能3）
-              stepText = "もっと書きたい 1/3";
+          case 8:
+              stepText = "もっとかきたい 1/3";
               textToType = `「${dailyQuestions[3]}」`;
               break;
-          case 9: // 第3段階2（コア機能3）
-              stepText = "もっと書きたい 2/3";
+          case 9:
+              stepText = "もっとかきたい 2/3";
               textToType = `「${dailyQuestions[4]}」`;
               break;
-          case 10: // 第3段階3（コア機能3）
-              stepText = "もっと書きたい 3/3";
+          case 10:
+              stepText = "もっとかきたい 3/3";
               textToType = `「${dailyQuestions[5]}」`;
               break;
-          case 11: // 完了（最終画面）
+          case 11: 
               isFinal = true;
-              stepText = "完了！";
-              textToType = "お疲れ様でした！<br>今日も手帳が書けましたね。";
+              stepText = "きろく かんりょう";
+              textToType = "おつかれさま！\nきょうの ぼうけんは ここまでだ。\nゆっくり やすんでね。";
+              primaryBtnText = "さいしょから やりなおす";
+              primaryBtn.onclick = initApp; // ボタンのアクションを初期化に変更
               break;
           default:
               break;
       }
 
-      // UIの更新
       stepIndicator.innerText = `【 ${stepText} 】`;
-      primaryBtn.innerHTML = `<span class="cursor">▶︎</span>${primaryBtnText}`;
+      primaryBtnTextSpan.innerText = primaryBtnText;
 
-      // 完了画面ではボタンを隠すなどの処理
+      // 完了画面のUI調整
       if (isFinal) {
-          primaryBtn.style.display = 'none';
           secondaryBtn.style.display = 'none';
-          // 完了画面に別のメッセージを出すなどの拡張が可能
       } else {
-          primaryBtn.style.display = 'flex';
           secondaryBtn.style.display = 'flex';
       }
 
-      // タイプライター風のアニメーション（拡張機能④）
       typeWriter(textToType);
   };
 
-  // 「かけた！」または「はい」で進む
   const nextStep = () => {
       currentState++;
       renderView();
   };
 
-  // 「今日はここまで」で終了
   const finishEarly = () => {
-      currentState = 11; // 完了画面へ飛ぶ
+      currentState = 11; 
       renderView();
   };
 
-  // タイプライターアニメーション関数
   const typeWriter = (text, speed = 60) => {
       let i = 0;
       messageText.innerHTML = "";
-      // タイプライターのタイマーを開始
+      
       typeWriterTimer = setInterval(() => {
           if (i < text.length) {
-              // 改行文字（\nまたは<br>）の処理
               if (text.substr(i, 4) === '<br>') {
                   messageText.innerHTML += '<br>';
                   i += 4;
@@ -344,9 +345,9 @@
                   i++;
               }
           } else {
-              // 終了したらタイマーをクリアし、点滅カーソルを追加
               clearInterval(typeWriterTimer);
-              messageText.innerHTML += '<span class="blinking-cursor">▼</span>';
+              // タイピングが終わったら右下のカーソルを表示
+              blinkingCursor.style.display = 'block';
           }
       }, speed);
   };
