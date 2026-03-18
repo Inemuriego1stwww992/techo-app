@@ -25,7 +25,6 @@
     text-rendering: optimizeSpeed;
   }
 
-  /* アプリ全体のコンテナ */
   #app-container {
     max-width: 480px;
     width: 100%;
@@ -38,7 +37,6 @@
     transition: opacity 0.5s ease-in-out;
   }
 
-  /* ヘッダーエリア（黄色ウィンドウの外） */
   header {
     text-align: center;
     margin-bottom: 20px;
@@ -56,7 +54,6 @@
     color: #FFFFFF;
   }
 
-  /* メインコンテンツエリア */
   main {
     width: 100%;
     margin-bottom: 30px;
@@ -64,17 +61,15 @@
 
   /* 黄色のメッセージウィンドウ */
   #message-window {
-    background-color: #ECC42D; /* 画像の黄色 */
-    /* ピクセル網目枠をCSSで再現 */
+    background-color: #ECC42D;
     border: 8px solid;
     border-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAAPElEQVQoU2NkYGBgYGJkZGT4//8/AxMTE8P///8ZmJiYGP7//8/AxMTw//9/BiYmBiaGJ4YvBiYmBiaGLwYmBgaGJ4YfBgYmBiaGHwYGCAYGAAEAABAAAAA=') 1;
-    padding: 25px 25px 45px 25px; /* 下部に▼用の余白を確保 */
+    padding: 25px 25px 45px 25px;
     box-sizing: border-box;
     position: relative;
-    min-height: 160px; /* ウィンドウの高さがガタガタ変わらないように固定 */
+    min-height: 160px;
   }
 
-  /* ウィンドウ内のテキスト */
   #message-text {
     color: #000000;
     font-size: 1.2rem;
@@ -83,41 +78,40 @@
     letter-spacing: 0.05em;
   }
 
-  /* 点滅する白いカーソル（右下固定） */
   #blinking-cursor {
-    color: #FFFFFF; /* ご要望通り白に変更 */
+    color: #FFFFFF;
     font-size: 1.5rem;
     position: absolute;
     right: 20px;
     bottom: 15px;
     animation: blink 1s step-start infinite;
-    display: none; /* 初期は非表示（文字入力後に表示） */
+    display: none;
   }
 
-  /* フッター（ボタン）エリア */
   footer {
     width: 100%;
     display: flex;
     justify-content: space-between;
     box-sizing: border-box;
     padding: 0 10px;
+    gap: 10px; /* ボタン間の隙間 */
   }
 
-  /* アクションボタン（画像に合わせて枠線なし、テキストのみ） */
   .action-btn {
     background-color: transparent;
     color: #FFFFFF;
     border: none;
     font-family: 'DotGothic16', sans-serif;
-    font-size: 1.2rem;
-    padding: 10px 10px;
+    font-size: 1.1rem;
+    padding: 10px 5px;
     cursor: pointer;
     display: flex;
     align-items: center;
+    justify-content: center;
     transition: color 0.1s;
+    flex: 1;
   }
 
-  /* CSSで描画するピクセルアロー（▶） */
   .pixel-arrow {
     display: inline-block;
     width: 4px;
@@ -127,15 +121,14 @@
       0 4px currentColor, 0 8px currentColor, 0 12px currentColor, 0 16px currentColor,
       4px 4px currentColor, 4px 8px currentColor, 4px 12px currentColor,
       8px 8px currentColor;
-    margin-right: 18px;
-    transform: translateY(-6px); /* 位置の微調整 */
+    margin-right: 12px;
+    transform: translateY(-6px);
   }
 
   .action-btn:hover {
-    color: #ECC42D; /* ホバー時は黄色に光る */
+    color: #ECC42D;
   }
 
-  /* 終了ボタン */
   .secondary-btn {
     color: #AAAAAA;
   }
@@ -143,7 +136,6 @@
     color: #FFFFFF;
   }
 
-  /* アニメーション用クラス */
   .fade-in {
     opacity: 1 !important;
   }
@@ -158,60 +150,68 @@
 <div id="app-container">
   <header>
     <h1 id="app-title">LOGBOY</h1>
-    <p id="step-indicator">【 まいにち かくこと 1/3 】</p>
+    <p id="step-indicator">【 モード せんたく 】</p>
   </header>
   <main>
     <div id="message-window">
-      <p id="message-text">
-        </p>
+      <p id="message-text"></p>
       <div id="blinking-cursor">▼</div>
     </div>
   </main>
   <footer>
-    <button id="primary-btn" class="action-btn" onclick="nextStep()">
-      <span class="pixel-arrow"></span><span id="primary-btn-text">かけた！</span>
+    <button id="primary-btn" class="action-btn">
+      <span class="pixel-arrow"></span><span id="primary-btn-text">プランニング(朝)</span>
     </button>
-    <button id="secondary-btn" class="action-btn secondary-btn" onclick="finishEarly()">
-      <span class="pixel-arrow"></span><span id="secondary-btn-text">きょうは ここまで</span>
+    <button id="secondary-btn" class="action-btn secondary-btn">
+      <span class="pixel-arrow"></span><span id="secondary-btn-text">ふりかえり(夜)</span>
     </button>
   </footer>
 </div>
 
 <script>
-  let currentState = 0; 
-  let dailyQuestions = []; 
+  let currentState = -1; // -1: モード選択, 0〜: 各質問ステージ
+  let currentMode = null; // 'PLANNING' or 'REFLECTION'
+  let activeQuestions = []; 
   let typeWriterTimer; 
 
-  // コア機能1の固定質問
-  const stage1Questions = [
-      "きょう(あした)のスケジュールは？",
+  // ＝＝＝ プランニング（朝）モードの質問 ＝＝＝
+  const planningFixed = [
+      "きょうのスケジュールは？",
       "今日のTODOやタスクは？",
       "今日の目標は？"
   ];
+  const planningPool = [
+      "今日、一番楽しみなことは？",
+      "今日、どんな気分で過ごしたい？",
+      "今日、自分にご褒美をあげるとしたら？",
+      "今日、気をつけたいことは？",
+      "今日、誰を笑顔にしたい？",
+      "今日、新しく始めてみたいことは？",
+      "今日のラッキーアイテム（自分設定）は？",
+      "今日、絶対に終わらせたいタスクは？",
+      "今日、一番集中したい時間は？",
+      "今日、心がけたい言葉は？"
+  ];
 
-  // 誰もが答えやすい日常の振り返り質問（大増量：全20問）
-  // ここから毎回ランダムに6問選ばれます
-  const easyQuestionsPool = [
+  // ＝＝＝ ふりかえり（夜）モードの質問 ＝＝＝
+  const reflectionFixed = [
+      "今日達成したこと、出来たことは？",
+      "今日の発見、新しく知ったことは？",
+      "今日の自分に点数を点けるなら何点？"
+  ];
+  const reflectionPool = [
       "今日一番美味しかったものは？",
       "今日一番リラックスできた瞬間は？",
       "今日出会った素敵な言葉は？",
       "今日誰かに言われて嬉しかったことは？",
-      "今日、新しく知ったことは？",
       "今日、うまくいったことは？",
       "今日、少しでも進んだことは？",
       "今日、気分が上がった出来事は？",
-      "今日の自分に点数を点けるなら何点？",
-      "明日が来るのが楽しみになることは？",
       "今日の「ありがとう」の出来事は？",
       "今日、心が動いた瞬間は？",
-      "今日、手帳に書き残したいことは？",
-      "明日、挑戦してみたいことは？",
       "今日、思わず笑ってしまったことは？",
       "今日、頑張った自分を褒めるとしたら？",
-      "今日聴いて心地よかった音楽や音は？",
-      "今日、一番集中できた時間は？",
-      "今日、ちょっとした贅沢だと感じたことは？",
-      "今日の自分を動物に例えるなら？"
+      "今日聴いて心地よかった音楽や音は？"
   ];
 
   const appContainer = document.getElementById('app-container');
@@ -221,8 +221,8 @@
   const primaryBtn = document.getElementById('primary-btn');
   const secondaryBtn = document.getElementById('secondary-btn');
   const primaryBtnTextSpan = document.getElementById('primary-btn-text');
+  const secondaryBtnTextSpan = document.getElementById('secondary-btn-text');
 
-  // 配列からN個をランダムに選ぶ
   const getRandomQuestions = (pool, count) => {
       const shuffled = [...pool].sort(() => 0.5 - Math.random());
       return shuffled.slice(0, count);
@@ -232,139 +232,8 @@
       const hour = new Date().getHours();
       if (hour >= 5 && hour < 11) return "おはよう！";
       if (hour >= 11 && hour < 17) return "こんにちは！";
-      return "きょうも おつかれさま！";
+      return "こんばんは！";
   };
 
-  // アプリ起動時の初期化
   const initApp = () => {
-      // 日常のやさしい質問プールから、今日の分として6問をランダム抽出
-      dailyQuestions = getRandomQuestions(easyQuestionsPool, 6);
-      currentState = 0;
-
-      appContainer.classList.add('fade-in');
-      renderView();
-  };
-
-  const renderView = () => {
-      if (typeWriterTimer) clearInterval(typeWriterTimer);
-      blinkingCursor.style.display = 'none'; // タイピング中はカーソルを隠す
-
-      let stepText = "";
-      let primaryBtnText = "かけた！";
-      let textToType = "";
-      let isFinal = false; 
-
-      // ボタンのアクションをデフォルトで進む処理に設定
-      primaryBtn.onclick = nextStep;
-
-      // 状態ごとのテキストと指示
-      switch (currentState) {
-          case 0: // ステージ1 - 1
-              stepText = "まいにち かくこと 1/3";
-              textToType = `${getGreeting()} さっそく\nきろくを はじめよう！\n\n「${stage1Questions[0]}」`;
-              break;
-          case 1: // ステージ1 - 2
-              stepText = "まいにち かくこと 2/3";
-              textToType = `「${stage1Questions[1]}」`;
-              break;
-          case 2: // ステージ1 - 3
-              stepText = "まいにち かくこと 3/3";
-              textToType = `「${stage1Questions[2]}」`;
-              break;
-          case 3: // 分岐①
-              stepText = "まいにち かんりょう";
-              textToType = "おつかれさま！\nきほんの きろくが おわったね。\n\nさらに かいていくかい？";
-              primaryBtnText = "はい";
-              break;
-          case 4: // ステージ2 - 1
-              stepText = "かきたい とき 1/3";
-              textToType = `「${dailyQuestions[0]}」`;
-              break;
-          case 5: // ステージ2 - 2
-              stepText = "かきたい とき 2/3";
-              textToType = `「${dailyQuestions[1]}」`;
-              break;
-          case 6: // ステージ2 - 3
-              stepText = "かきたい とき 3/3";
-              textToType = `「${dailyQuestions[2]}」`;
-              break;
-          case 7: // 分岐②
-              stepText = "かきたいとき かんりょう";
-              textToType = "すばらしい！\nあたまのなかが せいりされたね。\n\nもっと ふかぼり してみる？";
-              primaryBtnText = "はい";
-              break;
-          case 8: // ステージ3 - 1
-              stepText = "もっと かきたい 1/3";
-              textToType = `「${dailyQuestions[3]}」`;
-              break;
-          case 9: // ステージ3 - 2
-              stepText = "もっと かきたい 2/3";
-              textToType = `「${dailyQuestions[4]}」`;
-              break;
-          case 10: // ステージ3 - 3
-              stepText = "もっと かきたい 3/3";
-              textToType = `「${dailyQuestions[5]}」`;
-              break;
-          case 11: // 完了画面
-              isFinal = true;
-              stepText = "きろく かんりょう";
-              textToType = "おつかれさま！\nきょうの ぼうけんは ここまでだ。\nゆっくり やすんでね。";
-              primaryBtnText = "さいしょから やりなおす";
-              primaryBtn.onclick = initApp; 
-              break;
-          default:
-              break;
-      }
-
-      stepIndicator.innerText = `【 ${stepText} 】`;
-      primaryBtnTextSpan.innerText = primaryBtnText;
-
-      if (isFinal) {
-          secondaryBtn.style.display = 'none';
-      } else {
-          secondaryBtn.style.display = 'flex';
-      }
-
-      typeWriter(textToType);
-  };
-
-  const nextStep = () => {
-      currentState++;
-      renderView();
-  };
-
-  const finishEarly = () => {
-      currentState = 11; 
-      renderView();
-  };
-
-  // 1文字ずつ表示するタイプライター機能
-  const typeWriter = (text, speed = 60) => {
-      let i = 0;
-      messageText.innerHTML = "";
-      
-      typeWriterTimer = setInterval(() => {
-          if (i < text.length) {
-              if (text.substr(i, 4) === '<br>') {
-                  messageText.innerHTML += '<br>';
-                  i += 4;
-              } else if (text.charAt(i) === '\n') {
-                  messageText.innerHTML += '<br>';
-                  i++;
-              } else {
-                  messageText.innerHTML += text.charAt(i);
-                  i++;
-              }
-          } else {
-              clearInterval(typeWriterTimer);
-              // タイピングが終わったら右下のカーソルを表示
-              blinkingCursor.style.display = 'block';
-          }
-      }, speed);
-  };
-
-  initApp();
-</script>
-
-</body>
-</html>
+      currentState = -1; // モード選択画面へ
