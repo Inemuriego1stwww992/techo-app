@@ -237,3 +237,149 @@
 
   const initApp = () => {
       currentState = -1; // モード選択画面へ
+      currentMode = null;
+      appContainer.classList.add('fade-in');
+      renderView();
+  };
+
+  const startMode = (mode) => {
+      currentMode = mode;
+      if (mode === 'PLANNING') {
+          activeQuestions = [...planningFixed, ...getRandomQuestions(planningPool, 6)];
+      } else {
+          activeQuestions = [...reflectionFixed, ...getRandomQuestions(reflectionPool, 6)];
+      }
+      currentState = 0; // 質問1問目へ
+      renderView();
+  };
+
+  const renderView = () => {
+      if (typeWriterTimer) clearInterval(typeWriterTimer);
+      blinkingCursor.style.display = 'none'; 
+
+      let stepText = "";
+      let primaryBtnText = "";
+      let secondaryBtnText = "";
+      let textToType = "";
+      let isFinal = false; 
+
+      // デフォルトのアクション（通常の進行時）
+      primaryBtn.onclick = nextStep;
+      secondaryBtn.onclick = finishEarly;
+      secondaryBtn.classList.add('secondary-btn');
+
+      if (currentState === -1) {
+          // ＝＝＝ モード選択画面 ＝＝＝
+          stepText = "モード せんたく";
+          textToType = `${getGreeting()}\nきょうは どの モードで\nきろく を はじめる？`;
+          primaryBtnText = "プランニング(朝)";
+          secondaryBtnText = "ふりかえり(夜)";
+          
+          primaryBtn.onclick = () => startMode('PLANNING');
+          secondaryBtn.onclick = () => startMode('REFLECTION');
+          secondaryBtn.classList.remove('secondary-btn'); // 選択肢なので色を明るくする
+      } 
+      else {
+          // ＝＝＝ 質問進行画面 ＝＝＝
+          let modeName = currentMode === 'PLANNING' ? "プラン" : "ふりかえり";
+
+          switch (currentState) {
+              case 0:
+              case 1:
+              case 2:
+                  stepText = `${modeName} 1 / 3`;
+                  textToType = currentState === 0 ? `さっそく はじめよう！\n\n「${activeQuestions[currentState]}」` : `「${activeQuestions[currentState]}」`;
+                  primaryBtnText = "かけた！";
+                  secondaryBtnText = "きょうは ここまで";
+                  break;
+              case 3:
+                  stepText = `${modeName} かんりょう`;
+                  textToType = "おつかれさま！\nきほんの きろくが おわったね。\n\nさらに かいていくかい？";
+                  primaryBtnText = "はい";
+                  secondaryBtnText = "きょうは ここまで";
+                  break;
+              case 4:
+              case 5:
+              case 6:
+                  stepText = `${modeName} 2 / 3`;
+                  textToType = `「${activeQuestions[currentState-1]}」`;
+                  primaryBtnText = "かけた！";
+                  secondaryBtnText = "きょうは ここまで";
+                  break;
+              case 7:
+                  stepText = `${modeName} かんりょう`;
+                  textToType = "すばらしい！\nあたまのなかが せいりされたね。\n\nもっと ふかぼり してみる？";
+                  primaryBtnText = "はい";
+                  secondaryBtnText = "きょうは ここまで";
+                  break;
+              case 8:
+              case 9:
+              case 10:
+                  stepText = `${modeName} 3 / 3`;
+                  textToType = `「${activeQuestions[currentState-2]}」`;
+                  primaryBtnText = "かけた！";
+                  secondaryBtnText = "きょうは ここまで";
+                  break;
+              case 11:
+                  isFinal = true;
+                  stepText = "きろく かんりょう";
+                  textToType = "おつかれさま！\nきょうの ぼうけんは ここまでだ。\nゆっくり やすんでね。";
+                  primaryBtnText = "さいしょから やりなおす";
+                  primaryBtn.onclick = initApp; 
+                  break;
+              default:
+                  break;
+          }
+      }
+
+      stepIndicator.innerText = `【 ${stepText} 】`;
+      primaryBtnTextSpan.innerText = primaryBtnText;
+      secondaryBtnTextSpan.innerText = secondaryBtnText;
+
+      if (isFinal) {
+          secondaryBtn.style.display = 'none';
+      } else {
+          secondaryBtn.style.display = 'flex';
+      }
+
+      typeWriter(textToType);
+  };
+
+  const nextStep = () => {
+      currentState++;
+      renderView();
+  };
+
+  const finishEarly = () => {
+      currentState = 11; 
+      renderView();
+  };
+
+  const typeWriter = (text, speed = 60) => {
+      let i = 0;
+      messageText.innerHTML = "";
+      
+      typeWriterTimer = setInterval(() => {
+          if (i < text.length) {
+              if (text.substr(i, 4) === '<br>') {
+                  messageText.innerHTML += '<br>';
+                  i += 4;
+              } else if (text.charAt(i) === '\n') {
+                  messageText.innerHTML += '<br>';
+                  i++;
+              } else {
+                  messageText.innerHTML += text.charAt(i);
+                  i++;
+              }
+          } else {
+              clearInterval(typeWriterTimer);
+              blinkingCursor.style.display = 'block';
+          }
+      }, speed);
+  };
+
+  initApp();
+</script>
+
+</body>
+</html>
